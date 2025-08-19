@@ -17,7 +17,9 @@ services:
       # 日志目录映射 - 重要：将容器内日志映射到当前项目的logs目录
       - /mnt/scsi0-4/ta-volumes/logs:/app/logs 
       # 配置目录映射 - 重要：持久化token统计和其他配置数据
-      - /mnt/scsi0-4/ta-volumes/config:/app/config 
+      - /mnt/scsi0-4/ta-volumes/config:/app/config
+      - /mnt/scsi0-4/ta-volumes/results:/app/results 
+      - /mnt/scsi0-4/ta-volumes/data:/app/data
     env_file:
       - .env
     environment:
