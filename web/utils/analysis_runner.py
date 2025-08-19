@@ -97,7 +97,7 @@ def extract_risk_assessment(state):
         logger.info(f"提取风险评估数据时出错: {e}")
         return None
 
-def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, llm_provider, llm_model, market_type="美股", progress_callback=None):
+def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, llm_provider, llm_model, market_type="美股", progress_callback=None, custom_openai_config=None):
     """执行股票分析
 
     Args:
@@ -105,9 +105,10 @@ def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, ll
         analysis_date: 分析日期
         analysts: 分析师列表
         research_depth: 研究深度
-        llm_provider: LLM提供商 (dashscope/deepseek/google)
+        llm_provider: LLM提供商 (dashscope/deepseek/google/custom_openai)
         llm_model: 大模型名称
         progress_callback: 进度回调函数，用于更新UI状态
+        custom_openai_config: 自定义OpenAI端点配置 (仅当llm_provider为custom_openai时使用)
     """
 
     def update_progress(message, step=None, total_steps=None):
@@ -207,9 +208,18 @@ def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, ll
     logger.info(f"环境变量检查:")
     logger.info(f"  DASHSCOPE_API_KEY: {'已设置' if dashscope_key else '未设置'}")
     logger.info(f"  FINNHUB_API_KEY: {'已设置' if finnhub_key else '未设置'}")
-
-    if not dashscope_key:
-        raise ValueError("DASHSCOPE_API_KEY 环境变量未设置")
+    
+    # 如果是自定义OpenAI端点，检查相关配置
+    if llm_provider == "custom_openai":
+        custom_openai_key = os.getenv("CUSTOM_OPENAI_API_KEY")
+        logger.info(f"  CUSTOM_OPENAI_API_KEY: {'已设置' if custom_openai_key else '未设置'}")
+        if not custom_openai_key:
+            raise ValueError("自定义OpenAI端点需要设置API密钥")
+    else:
+        # 对于非自定义OpenAI的情况，检查dashscope密钥
+        if not dashscope_key:
+            raise ValueError("DASHSCOPE_API_KEY 环境变量未设置")
+    
     if not finnhub_key:
         raise ValueError("FINNHUB_API_KEY 环境变量未设置")
 
@@ -226,6 +236,17 @@ def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, ll
         config["llm_provider"] = llm_provider
         config["deep_think_llm"] = llm_model
         config["quick_think_llm"] = llm_model
+        
+        # 如果是自定义OpenAI端点，添加相关配置
+        if llm_provider == "custom_openai" and custom_openai_config:
+            config["custom_openai_base_url"] = custom_openai_config.get("base_url", "https://api.openai.com/v1")
+            config["custom_openai_api_key"] = custom_openai_config.get("api_key", "")
+            logger.info(f"🔧 [自定义OpenAI] 配置已设置 - 端点: {config['custom_openai_base_url']}")
+            
+            # 为自定义OpenAI设置环境变量（临时）
+            if config["custom_openai_api_key"]:
+                os.environ["CUSTOM_OPENAI_API_KEY"] = config["custom_openai_api_key"]
+                logger.info(f"🔑 [自定义OpenAI] API密钥已设置")
         # 根据研究深度调整配置
         if research_depth == 1:  # 1级 - 快速分析
             config["max_debate_rounds"] = 1

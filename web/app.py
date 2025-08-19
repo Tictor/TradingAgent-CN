@@ -777,6 +777,15 @@ def main():
 
                 def run_analysis_in_background():
                     try:
+                        # 准备自定义OpenAI配置
+                        custom_openai_config = None
+                        if config['llm_provider'] == 'custom_openai':
+                            custom_openai_config = {
+                                'base_url': config.get('custom_openai_base_url', 'https://api.openai.com/v1'),
+                                'api_key': config.get('custom_openai_api_key', '')
+                            }
+                            logger.info(f"🔧 [自定义OpenAI] 传递配置: {custom_openai_config['base_url']}")
+                        
                         results = run_stock_analysis(
                             stock_symbol=form_data['stock_symbol'],
                             analysis_date=form_data['analysis_date'],
@@ -785,7 +794,8 @@ def main():
                             llm_provider=config['llm_provider'],
                             market_type=form_data.get('market_type', '美股'),
                             llm_model=config['llm_model'],
-                            progress_callback=progress_callback
+                            progress_callback=progress_callback,
+                            custom_openai_config=custom_openai_config
                         )
 
                         # 标记分析完成并保存结果（不访问session state）

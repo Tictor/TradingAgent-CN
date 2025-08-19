@@ -183,8 +183,6 @@ class TradingAgentsGraph:
             logger.info(f"✅ [DeepSeek] 已启用token统计功能")
         elif self.config["llm_provider"].lower() == "custom_openai":
             # 自定义OpenAI端点配置
-            from tradingagents.llm_adapters.openai_compatible_base import create_openai_compatible_llm
-            
             custom_api_key = os.getenv('CUSTOM_OPENAI_API_KEY')
             if not custom_api_key:
                 raise ValueError("使用自定义OpenAI端点需要设置CUSTOM_OPENAI_API_KEY环境变量")
@@ -192,24 +190,27 @@ class TradingAgentsGraph:
             custom_base_url = self.config.get("custom_openai_base_url", "https://api.openai.com/v1")
             
             logger.info(f"🔧 [自定义OpenAI] 使用端点: {custom_base_url}")
+            logger.info(f"🔑 [自定义OpenAI] 使用API密钥: {custom_api_key[:20]}...")
             
-            # 使用OpenAI兼容适配器创建LLM实例
-            self.deep_thinking_llm = create_openai_compatible_llm(
-                provider="custom_openai",
+            # 直接使用ChatOpenAI创建LLM实例
+            self.deep_thinking_llm = ChatOpenAI(
                 model=self.config["deep_think_llm"],
                 base_url=custom_base_url,
+                api_key=custom_api_key,
                 temperature=0.1,
                 max_tokens=2000
             )
-            self.quick_thinking_llm = create_openai_compatible_llm(
-                provider="custom_openai",
+            self.quick_thinking_llm = ChatOpenAI(
                 model=self.config["quick_think_llm"],
                 base_url=custom_base_url,
+                api_key=custom_api_key,
                 temperature=0.1,
                 max_tokens=2000
             )
             
             logger.info(f"✅ [自定义OpenAI] 已配置自定义端点: {custom_base_url}")
+            logger.info(f"✅ [自定义OpenAI] 深度思考模型: {self.config['deep_think_llm']}")
+            logger.info(f"✅ [自定义OpenAI] 快速思考模型: {self.config['quick_think_llm']}")
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
         

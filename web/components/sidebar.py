@@ -1050,10 +1050,19 @@ def render_sidebar():
 
     logger.debug(f"🔄 [Session State] 返回配置 - provider: {final_provider}, model: {final_model}")
 
-    return {
+    # 构建返回配置，包含自定义OpenAI端点信息
+    config = {
         'llm_provider': final_provider,
         'llm_model': final_model,
         'enable_memory': enable_memory,
         'enable_debug': enable_debug,
         'max_tokens': max_tokens
     }
+    
+    # 如果是自定义OpenAI端点，添加额外配置
+    if final_provider == "custom_openai":
+        config['custom_openai_base_url'] = st.session_state.get('custom_openai_base_url', 'https://api.openai.com/v1')
+        config['custom_openai_api_key'] = st.session_state.get('custom_openai_api_key', '')
+        logger.debug(f"🔧 [自定义OpenAI] 配置已添加 - 端点: {config['custom_openai_base_url']}")
+    
+    return config
