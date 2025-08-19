@@ -209,8 +209,8 @@ def render_sidebar():
         # LLM提供商选择
         llm_provider = st.selectbox(
             "LLM提供商",
-            options=["dashscope", "deepseek", "google", "openai", "openrouter", "siliconflow","custom_openai"],
-            index=["dashscope", "deepseek", "google", "openai", "openrouter","siliconflow", "custom_openai"].index(st.session_state.llm_provider) if st.session_state.llm_provider in ["siliconflow", "dashscope", "deepseek", "google", "openai", "openrouter", "custom_openai"] else 0,
+            options=["dashscope", "deepseek", "google", "openai", "openrouter", "siliconflow", "volcengine", "custom_openai"],
+            index=["dashscope", "deepseek", "google", "openai", "openrouter", "siliconflow", "volcengine", "custom_openai"].index(st.session_state.llm_provider) if st.session_state.llm_provider in ["dashscope", "deepseek", "google", "openai", "openrouter", "siliconflow", "volcengine", "custom_openai"] else 0,
             format_func=lambda x: {
                 "dashscope": "🇨🇳 阿里百炼",
                 "deepseek": "🚀 DeepSeek V3",
@@ -218,6 +218,7 @@ def render_sidebar():
                 "openai": "🤖 OpenAI",
                 "openrouter": "🌐 OpenRouter",
                 "siliconflow": "🇨🇳 硅基流动",
+                "volcengine": "🇨🇳 火山引擎",
                 "custom_openai": "🔧 自定义OpenAI端点"
             }[x],
             help="选择AI模型提供商",
@@ -584,7 +585,75 @@ def render_sidebar():
             - 本地部署的OpenAI兼容服务
             - 其他兼容OpenAI格式的API服务
             """)
-        else:  # openrouter
+        elif llm_provider == "volcengine":
+            st.markdown("### 🇨🇳 火山引擎配置")
+            
+            # 初始化session state
+            if 'volcengine_model' not in st.session_state:
+                st.session_state.volcengine_model = ""
+            
+            # 火山引擎模型配置说明
+            st.info("💡 **火山引擎使用说明**: 模型编号是您在火山引擎平台创建的个人专属模型ID")
+            
+            # 自定义模型输入
+            volcengine_model = st.text_input(
+                "火山引擎模型ID",
+                value=st.session_state.volcengine_model if st.session_state.volcengine_model else "",
+                placeholder="例如: ep-20231201-xxxxxx",
+                help="输入您在火山引擎平台创建的模型ID，格式通常为 ep-yyyymmdd-xxxxxx",
+                key="volcengine_model_input"
+            )
+            
+            # 更新session state和持久化存储
+            if st.session_state.llm_model != volcengine_model:
+                logger.debug(f"🔄 [Persistence] 火山引擎模型变更: {st.session_state.llm_model} → {volcengine_model}")
+            st.session_state.volcengine_model = volcengine_model
+            st.session_state.llm_model = volcengine_model
+            logger.debug(f"💾 [Persistence] 火山引擎模型已保存: {volcengine_model}")
+            
+            # 保存到持久化存储
+            save_model_selection(st.session_state.llm_provider, st.session_state.model_category, volcengine_model)
+            
+            # 预设模型ID快速选择（如果用户有常用的）
+            st.markdown("**🚀 使用提示:**")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("📋 模型ID格式示例", key="volcengine_example", use_container_width=True):
+                    st.info("""
+                    **火山引擎模型ID格式示例:**
+                    - ep-20241201-abc123
+                    - ep-20241115-def456
+                    - ep-20241030-ghi789
+                    
+                    请从您的火山引擎控制台获取准确的模型ID
+                    """)
+            
+            with col2:
+                if st.button("🔗 打开控制台", key="volcengine_console", use_container_width=True):
+                    st.markdown('[点击访问火山引擎控制台](https://console.volcengine.com/ark)')
+            
+            # 配置验证
+            if volcengine_model:
+                st.success(f"✅ 当前模型ID: `{volcengine_model}`")
+            else:
+                st.warning("⚠️ 请输入火山引擎模型ID")
+            
+            # 火山引擎特殊提示
+            st.markdown("""
+            **📖 火山引擎配置说明:**
+            - **API端点**: `https://ark.cn-beijing.volces.com/api/v3`
+            - **API密钥**: 在.env文件中设置 `VOLCENGINE_API_KEY`
+            - **模型ID**: 每个用户在平台创建的专属模型编号
+            - **兼容性**: 完全兼容OpenAI API格式
+            
+            **🔑 API密钥获取:**
+            1. 登录火山引擎控制台
+            2. 进入AI推理服务
+            3. 创建API密钥
+            4. 配置到环境变量中
+            """)
+        elif llm_provider == "openrouter":  # openrouter
             # OpenRouter模型分类选择
             model_category = st.selectbox(
                 "模型类别",
@@ -943,6 +1012,8 @@ def render_sidebar():
                 return f"{key[:8]}...", "success"
             elif expected_format == "anthropic" and key.startswith("sk-") and len(key) >= 40:
                 return f"{key[:8]}...", "success"
+            elif expected_format == "volcengine" and len(key) >= 20:
+                return f"{key[:8]}...", "success"
             elif expected_format == "reddit" and len(key) >= 10:
                 return f"{key[:8]}...", "success"
             else:
@@ -1021,6 +1092,17 @@ def render_sidebar():
                 st.success(f"✅ Anthropic: {status}")
             elif level == "warning":
                 st.warning(f"⚠️ Anthropic: {status}")
+
+        # 火山引擎 (如果配置了)
+        volcengine_key = os.getenv("VOLCENGINE_API_KEY")
+        if volcengine_key:
+            status, level = validate_api_key(volcengine_key, "volcengine")
+            if level == "success":
+                st.success(f"✅ 火山引擎: {status}")
+            elif level == "warning":
+                st.warning(f"⚠️ 火山引擎: {status}")
+        else:
+            st.info("ℹ️ 火山引擎: 未配置")
 
         st.markdown("---")
 

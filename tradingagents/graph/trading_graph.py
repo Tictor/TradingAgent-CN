@@ -211,6 +211,36 @@ class TradingAgentsGraph:
             logger.info(f"✅ [自定义OpenAI] 已配置自定义端点: {custom_base_url}")
             logger.info(f"✅ [自定义OpenAI] 深度思考模型: {self.config['deep_think_llm']}")
             logger.info(f"✅ [自定义OpenAI] 快速思考模型: {self.config['quick_think_llm']}")
+        elif self.config["llm_provider"].lower() == "volcengine":
+            # 火山引擎配置
+            volcengine_api_key = os.getenv('VOLCENGINE_API_KEY')
+            if not volcengine_api_key:
+                raise ValueError("使用火山引擎需要设置VOLCENGINE_API_KEY环境变量")
+            
+            volcengine_base_url = "https://ark.cn-beijing.volces.com/api/v3"
+            
+            logger.info(f"🔧 [火山引擎] 使用端点: {volcengine_base_url}")
+            logger.info(f"🔑 [火山引擎] 使用API密钥: {volcengine_api_key[:20]}...")
+            
+            # 直接使用ChatOpenAI创建LLM实例（兼容OpenAI格式）
+            self.deep_thinking_llm = ChatOpenAI(
+                model=self.config["deep_think_llm"],
+                base_url=volcengine_base_url,
+                api_key=volcengine_api_key,
+                temperature=0.1,
+                max_tokens=2000
+            )
+            self.quick_thinking_llm = ChatOpenAI(
+                model=self.config["quick_think_llm"],
+                base_url=volcengine_base_url,
+                api_key=volcengine_api_key,
+                temperature=0.1,
+                max_tokens=2000
+            )
+            
+            logger.info(f"✅ [火山引擎] 已配置火山引擎端点: {volcengine_base_url}")
+            logger.info(f"✅ [火山引擎] 深度思考模型: {self.config['deep_think_llm']}")
+            logger.info(f"✅ [火山引擎] 快速思考模型: {self.config['quick_think_llm']}")
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
         

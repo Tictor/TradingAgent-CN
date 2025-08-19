@@ -117,11 +117,13 @@ python scripts/maintenance/cleanup_cache.py --days 7
 
 ### Multi-LLM Provider Support
 
-The system supports 4 major LLM providers:
+The system supports 5 major LLM providers:
 - **DashScope** (Alibaba): qwen-turbo, qwen-plus, qwen-max
 - **DeepSeek**: deepseek-chat (cost-effective)
 - **Google AI**: 9 verified models including gemini-2.5-pro, gemini-2.0-flash
+- **VolcEngine** (ByteDance): Custom model IDs (ep-yyyymmdd-xxxxxx format)
 - **OpenRouter**: 60+ models aggregation platform
+- **Custom OpenAI**: Self-hosted or proxy OpenAI-compatible endpoints
 
 ### Data Sources
 
@@ -189,6 +191,19 @@ The system supports 4 major LLM providers:
 - Copy `.env.example` to `.env` and configure API keys
 - Different configurations for Docker vs local deployment
 - Database hosts: `localhost` (local) vs `mongodb`/`redis` (Docker)
+
+**Required API Keys:**
+- `DASHSCOPE_API_KEY`: Alibaba DashScope (required)
+- `FINNHUB_API_KEY`: Stock data provider (required)
+
+**Optional API Keys:**
+- `DEEPSEEK_API_KEY`: DeepSeek V3 models
+- `GOOGLE_API_KEY`: Google AI/Gemini models
+- `OPENAI_API_KEY`: OpenAI models
+- `VOLCENGINE_API_KEY`: ByteDance VolcEngine models
+- `CUSTOM_OPENAI_API_KEY`: Custom OpenAI-compatible endpoints
+- `TUSHARE_TOKEN`: Professional Chinese stock data
+- `OPENROUTER_API_KEY`: OpenRouter aggregation platform
 
 ### Data Directory Configuration
 ```bash
