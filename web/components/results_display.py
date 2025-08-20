@@ -449,16 +449,17 @@ def render_detailed_analysis(state):
         overview_html += f"<span style='display:inline-flex; align-items:center; gap:6px; padding:6px 10px; margin:4px 6px 4px 0; background:white; border:1px solid #e1e5e9; border-radius:999px; font-size:13px; color:#495057; box-shadow:0 1px 2px rgba(0,0,0,0.05);'>{m['icon']} {m['title']}</span>"
     overview_html += "</div>"
     st.markdown(overview_html, unsafe_allow_html=True)
-    st.caption("提示：模块较多或屏幕较窄时，可横向滚动上方标签栏或概览区查看全部模块。")
+    st.caption("提示：模块较多或屏幕较窄时，可横向滚动上方标签栏或概览区查看全部模块。上方“模块概览”为只读展示，非选择器。")
 
     # 布局选择（自适应/标签页/下拉）
-    layout_choice = st.radio(
-        "选择显示布局",
-        options=["自适应模式", "标签页模式", "下拉选择模式"],
-        index=0,
-        horizontal=True,
-        help="自适应模式：优先使用可横向滚动的标签页；当你更喜欢列表时可切换到下拉模式。\n标签页模式：使用可横向滚动的标签栏，适配窄屏。\n下拉选择模式：用下拉菜单浏览模块。"
-    )
+    with st.expander("显示设置", expanded=False):
+        layout_choice = st.radio(
+            "展示方式",
+            options=["自适应模式", "标签页模式", "下拉选择模式"],
+            index=0,
+            horizontal=True,
+            help="自适应模式：优先使用可横向滚动的标签页；当你更喜欢列表时可切换到下拉模式。\n标签页模式：使用可横向滚动的标签栏，适配窄屏。\n下拉选择模式：用下拉菜单浏览模块。"
+        )
 
     def render_module_content(module_key, module_meta):
         content = state[module_key]
@@ -476,7 +477,7 @@ def render_detailed_analysis(state):
         else:
             st.write(content)
 
-    # 标签页样式：确保横向滚动条显眼可见
+    # 标签页样式：确保横向滚动条显眼可见（移除悬浮提示，避免样式像“梯形”）
     tabs_scroll_css = """
     <style>
     .stTabs [data-baseweb="tab-list"] {
@@ -493,12 +494,6 @@ def render_detailed_analysis(state):
     .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb { background-color: #ff6b6b !important; border-radius: 6px !important; border: 2px solid #ffffff !important; }
     .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb:hover { background-color: #ff5252 !important; }
     .stTabs [data-baseweb="tab"] { flex-shrink: 0 !important; min-width: fit-content !important; }
-    .stTabs [data-baseweb="tab-list"]::after {
-        content: "← 横向滚动查看更多 →" !important;
-        position: absolute !important; right: 8px !important; top: -18px !important;
-        font-size: 12px !important; color: #ff6b6b !important; background: rgba(255,255,255,0.9) !important;
-        padding: 2px 8px !important; border-radius: 10px !important; border: 1px solid #ff6b6b !important; font-weight: 600 !important;
-    }
     </style>
     """
 
@@ -519,8 +514,8 @@ def render_detailed_analysis(state):
         render_module_content(selected_module['key'], selected_module)
     else:
         # 自适应与标签页模式统一使用：可横向滚动的标签页
-        st.markdown(tabs_scroll_css, unsafe_allow_html=True)
         if len(available_modules) > 4:
+            st.markdown(tabs_scroll_css, unsafe_allow_html=True)
             st.info("💡 标签页较多时，可横向滚动标签栏来查看全部模块")
         tabs = st.tabs([m['title'] for m in available_modules])
         for tab, module in zip(tabs, available_modules):
