@@ -275,6 +275,32 @@ class FinancialSituationMemory:
                 self.client = "DISABLED"
                 logger.warning(f"⚠️ OpenRouter未找到DASHSCOPE_API_KEY，记忆功能已禁用")
                 logger.info(f"💡 系统将继续运行，但不会保存或检索历史记忆")
+        elif self.llm_provider == "volcengine":
+            # VolcEngine支持：优先使用阿里百炼嵌入，否则禁用记忆功能
+            dashscope_key = os.getenv('DASHSCOPE_API_KEY')
+            if dashscope_key:
+                try:
+                    # 尝试使用阿里百炼嵌入
+                    import dashscope
+                    from dashscope import TextEmbedding
+
+                    self.embedding = "text-embedding-v3"
+                    self.client = None
+                    dashscope.api_key = dashscope_key
+                    logger.info(f"💡 VolcEngine使用阿里百炼嵌入服务")
+                except ImportError as e:
+                    logger.error(f"❌ DashScope包未安装: {e}")
+                    self.client = "DISABLED"
+                    logger.warning(f"⚠️ VolcEngine记忆功能已禁用")
+                except Exception as e:
+                    logger.error(f"❌ DashScope初始化失败: {e}")
+                    self.client = "DISABLED"
+                    logger.warning(f"⚠️ VolcEngine记忆功能已禁用")
+            else:
+                # 没有DashScope密钥，禁用记忆功能
+                self.client = "DISABLED"
+                logger.warning(f"⚠️ VolcEngine未找到DASHSCOPE_API_KEY，记忆功能已禁用")
+                logger.info(f"💡 系统将继续运行，但不会保存或检索历史记忆")
         elif config["backend_url"] == "http://localhost:11434/v1":
             self.embedding = "nomic-embed-text"
             self.client = OpenAI(base_url=config["backend_url"])
@@ -384,7 +410,8 @@ class FinancialSituationMemory:
             self.llm_provider == "alibaba" or
             (self.llm_provider == "google" and self.client is None) or
             (self.llm_provider == "deepseek" and self.client is None) or
-            (self.llm_provider == "openrouter" and self.client is None)):
+            (self.llm_provider == "openrouter" and self.client is None) or
+            (self.llm_provider == "volcengine" and self.client is None)):
             # 使用阿里百炼的嵌入模型
             try:
                 # 导入DashScope模块
