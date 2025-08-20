@@ -25,6 +25,84 @@ def render_analysis_form():
         else:
             logger.debug("📊 [配置恢复] 使用默认配置")
 
+    # 获取缓存的分析师选择
+    cached_analysts = cached_config.get('selected_analysts', ['market', 'fundamentals']) if cached_config else ['market', 'fundamentals']
+
+    # 在表单外部处理分析师选择，确保动态更新
+    st.markdown("### 👥 选择分析师团队")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        market_analyst = st.checkbox(
+            "📈 市场分析师",
+            value='market' in cached_analysts,
+            help="专注于技术面分析、价格趋势、技术指标",
+            key="market_analyst_checkbox"
+        )
+
+        social_analyst = st.checkbox(
+            "💭 社交媒体分析师",
+            value='social' in cached_analysts,
+            help="分析社交媒体情绪、投资者情绪指标",
+            key="social_analyst_checkbox"
+        )
+
+    with col2:
+        news_analyst = st.checkbox(
+            "📰 新闻分析师",
+            value='news' in cached_analysts,
+            help="分析相关新闻事件、市场动态影响",
+            key="news_analyst_checkbox"
+        )
+
+        fundamentals_analyst = st.checkbox(
+            "💰 基本面分析师",
+            value='fundamentals' in cached_analysts,
+            help="分析财务数据、公司基本面、估值水平",
+            key="fundamentals_analyst_checkbox"
+        )
+    
+    # 收集选中的分析师
+    selected_analysts = []
+    if market_analyst:
+        selected_analysts.append(("market", "市场分析师"))
+    if social_analyst:
+        selected_analysts.append(("social", "社交媒体分析师"))
+    if news_analyst:
+        selected_analysts.append(("news", "新闻分析师"))
+    if fundamentals_analyst:
+        selected_analysts.append(("fundamentals", "基本面分析师"))
+    
+    # 动态显示选择摘要（现在在表单外部，会实时更新）
+    if selected_analysts:
+        st.success(f"✅ 已选择 {len(selected_analysts)} 个分析师: {', '.join([a[1] for a in selected_analysts])}")
+    else:
+        st.warning("⚠️ 请至少选择一个分析师")
+
+    # 实时保存分析师选择到配置
+    current_analyst_selection = [a[0] for a in selected_analysts]
+    if cached_config.get('selected_analysts', []) != current_analyst_selection:
+        # 更新配置
+        updated_config = cached_config.copy() if cached_config else {}
+        updated_config['selected_analysts'] = current_analyst_selection
+        st.session_state.form_config = updated_config
+        
+        # 同时保存到持久化存储
+        try:
+            from utils.smart_session_manager import smart_session_manager
+            current_analysis_id = st.session_state.get('current_analysis_id', 'form_config_only')
+            smart_session_manager.save_analysis_state(
+                analysis_id=current_analysis_id,
+                status=st.session_state.get('analysis_running', False) and 'running' or 'idle',
+                stock_symbol=updated_config.get('stock_symbol', ''),
+                market_type=updated_config.get('market_type', 'A股'),
+                form_config=updated_config
+            )
+            logger.debug(f"📊 [分析师选择] 实时保存配置: {current_analyst_selection}")
+        except Exception as e:
+            logger.warning(f"⚠️ [分析师选择] 实时保存失败: {e}")
+
     # 创建表单
     with st.form("analysis_form", clear_on_submit=False):
 
@@ -111,57 +189,6 @@ def render_analysis_form():
                 help="选择分析的深度级别，级别越高分析越详细但耗时更长"
             )
         
-        # 分析师团队选择
-        st.markdown("### 👥 选择分析师团队")
-        
-        col1, col2 = st.columns(2)
-        
-        # 获取缓存的分析师选择
-        cached_analysts = cached_config.get('selected_analysts', ['market', 'fundamentals']) if cached_config else ['market', 'fundamentals']
-
-        with col1:
-            market_analyst = st.checkbox(
-                "📈 市场分析师",
-                value='market' in cached_analysts,
-                help="专注于技术面分析、价格趋势、技术指标"
-            )
-
-            social_analyst = st.checkbox(
-                "💭 社交媒体分析师",
-                value='social' in cached_analysts,
-                help="分析社交媒体情绪、投资者情绪指标"
-            )
-
-        with col2:
-            news_analyst = st.checkbox(
-                "📰 新闻分析师",
-                value='news' in cached_analysts,
-                help="分析相关新闻事件、市场动态影响"
-            )
-
-            fundamentals_analyst = st.checkbox(
-                "💰 基本面分析师",
-                value='fundamentals' in cached_analysts,
-                help="分析财务数据、公司基本面、估值水平"
-            )
-        
-        # 收集选中的分析师
-        selected_analysts = []
-        if market_analyst:
-            selected_analysts.append(("market", "市场分析师"))
-        if social_analyst:
-            selected_analysts.append(("social", "社交媒体分析师"))
-        if news_analyst:
-            selected_analysts.append(("news", "新闻分析师"))
-        if fundamentals_analyst:
-            selected_analysts.append(("fundamentals", "基本面分析师"))
-        
-        # 显示选择摘要
-        if selected_analysts:
-            st.success(f"已选择 {len(selected_analysts)} 个分析师: {', '.join([a[1] for a in selected_analysts])}")
-        else:
-            st.warning("请至少选择一个分析师")
-        
         # 高级选项
         with st.expander("🔧 高级选项"):
             include_sentiment = st.checkbox(
@@ -209,12 +236,23 @@ def render_analysis_form():
         </script>
         """, unsafe_allow_html=True)
 
+        # 获取表单外部的分析师选择
+        form_selected_analysts = []
+        if st.session_state.get('market_analyst_checkbox', False):
+            form_selected_analysts.append(("market", "市场分析师"))
+        if st.session_state.get('social_analyst_checkbox', False):
+            form_selected_analysts.append(("social", "社交媒体分析师"))
+        if st.session_state.get('news_analyst_checkbox', False):
+            form_selected_analysts.append(("news", "新闻分析师"))
+        if st.session_state.get('fundamentals_analyst_checkbox', False):
+            form_selected_analysts.append(("fundamentals", "基本面分析师"))
+
         # 在提交按钮前检测配置变化并保存
         current_config = {
             'stock_symbol': stock_symbol,
             'market_type': market_type,
             'research_depth': research_depth,
-            'selected_analysts': [a[0] for a in selected_analysts],
+            'selected_analysts': [a[0] for a in form_selected_analysts],
             'include_sentiment': include_sentiment,
             'include_risk_assessment': include_risk_assessment,
             'custom_prompt': custom_prompt
@@ -251,7 +289,7 @@ def render_analysis_form():
         logger.debug(f"🔍 [FORM DEBUG] 用户输入的股票代码: '{stock_symbol}'")
         logger.debug(f"🔍 [FORM DEBUG] 市场类型: '{market_type}'")
         logger.debug(f"🔍 [FORM DEBUG] 分析日期: '{analysis_date}'")
-        logger.debug(f"🔍 [FORM DEBUG] 选择的分析师: {[a[0] for a in selected_analysts]}")
+        logger.debug(f"🔍 [FORM DEBUG] 选择的分析师: {[a[0] for a in form_selected_analysts]}")
         logger.debug(f"🔍 [FORM DEBUG] 研究深度: {research_depth}")
 
         form_data = {
@@ -259,7 +297,7 @@ def render_analysis_form():
             'stock_symbol': stock_symbol,
             'market_type': market_type,
             'analysis_date': str(analysis_date),
-            'analysts': [a[0] for a in selected_analysts],
+            'analysts': [a[0] for a in form_selected_analysts],
             'research_depth': research_depth,
             'include_sentiment': include_sentiment,
             'include_risk_assessment': include_risk_assessment,
@@ -271,7 +309,7 @@ def render_analysis_form():
             'stock_symbol': stock_symbol,
             'market_type': market_type,
             'research_depth': research_depth,
-            'selected_analysts': [a[0] for a in selected_analysts],
+            'selected_analysts': [a[0] for a in form_selected_analysts],
             'include_sentiment': include_sentiment,
             'include_risk_assessment': include_risk_assessment,
             'custom_prompt': custom_prompt
