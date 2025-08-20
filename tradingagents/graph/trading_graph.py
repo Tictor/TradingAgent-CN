@@ -76,20 +76,24 @@ class TradingAgentsGraph:
                 raise ValueError("使用SiliconFlow需要设置SILICONFLOW_API_KEY环境变量")
 
             logger.info(f"🌐 [SiliconFlow] 使用API密钥: {siliconflow_api_key[:20]}...")
+            
+            # 从环境变量获取max_tokens设置，默认为2000
+            max_tokens = int(os.getenv('MAX_TOKENS', '2000'))
+            logger.info(f"🔧 [SiliconFlow] 使用max_tokens: {max_tokens}")
 
             self.deep_thinking_llm = ChatOpenAI(
                 model=self.config["deep_think_llm"],
                 base_url=self.config["backend_url"],
                 api_key=siliconflow_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             self.quick_thinking_llm = ChatOpenAI(
                 model=self.config["quick_think_llm"],
                 base_url=self.config["backend_url"],
                 api_key=siliconflow_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
         elif self.config["llm_provider"] == "openrouter":
             # OpenRouter支持：优先使用OPENROUTER_API_KEY，否则使用OPENAI_API_KEY
@@ -122,17 +126,21 @@ class TradingAgentsGraph:
             if not google_api_key:
                 raise ValueError("使用Google AI需要设置GOOGLE_API_KEY环境变量")
             
+            # 从环境变量获取max_tokens设置，默认为2000
+            max_tokens = int(os.getenv('MAX_TOKENS', '2000'))
+            logger.info(f"🔧 [Google AI] 使用max_tokens: {max_tokens}")
+            
             self.deep_thinking_llm = ChatGoogleOpenAI(
                 model=self.config["deep_think_llm"],
                 google_api_key=google_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             self.quick_thinking_llm = ChatGoogleOpenAI(
                 model=self.config["quick_think_llm"],
                 google_api_key=google_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             
             logger.info(f"✅ [Google AI] 已启用优化的工具调用和内容格式处理")
@@ -142,15 +150,20 @@ class TradingAgentsGraph:
               "阿里百炼" in self.config["llm_provider"]):
             # 使用 OpenAI 兼容适配器，支持原生 Function Calling
             logger.info(f"🔧 使用阿里百炼 OpenAI 兼容适配器 (支持原生工具调用)")
+            
+            # 从环境变量获取max_tokens设置，默认为2000
+            max_tokens = int(os.getenv('MAX_TOKENS', '2000'))
+            logger.info(f"🔧 [阿里百炼] 使用max_tokens: {max_tokens}")
+            
             self.deep_thinking_llm = ChatDashScopeOpenAI(
                 model=self.config["deep_think_llm"],
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             self.quick_thinking_llm = ChatDashScopeOpenAI(
                 model=self.config["quick_think_llm"],
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
         elif (self.config["llm_provider"].lower() == "deepseek" or
               "deepseek" in self.config["llm_provider"].lower()):
@@ -164,20 +177,24 @@ class TradingAgentsGraph:
 
             deepseek_base_url = os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
 
+            # 从环境变量获取max_tokens设置，默认为2000
+            max_tokens = int(os.getenv('MAX_TOKENS', '2000'))
+            logger.info(f"🔧 [DeepSeek] 使用max_tokens: {max_tokens}")
+            
             # 使用支持token统计的DeepSeek适配器
             self.deep_thinking_llm = ChatDeepSeek(
                 model=self.config["deep_think_llm"],
                 api_key=deepseek_api_key,
                 base_url=deepseek_base_url,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             self.quick_thinking_llm = ChatDeepSeek(
                 model=self.config["quick_think_llm"],
                 api_key=deepseek_api_key,
                 base_url=deepseek_base_url,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
                 )
 
             logger.info(f"✅ [DeepSeek] 已启用token统计功能")
@@ -192,20 +209,24 @@ class TradingAgentsGraph:
             logger.info(f"🔧 [自定义OpenAI] 使用端点: {custom_base_url}")
             logger.info(f"🔑 [自定义OpenAI] 使用API密钥: {custom_api_key[:20]}...")
             
+            # 从环境变量获取max_tokens设置，默认为2000
+            max_tokens = int(os.getenv('MAX_TOKENS', '2000'))
+            logger.info(f"🔧 [自定义OpenAI] 使用max_tokens: {max_tokens}")
+            
             # 直接使用ChatOpenAI创建LLM实例
             self.deep_thinking_llm = ChatOpenAI(
                 model=self.config["deep_think_llm"],
                 base_url=custom_base_url,
                 api_key=custom_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             self.quick_thinking_llm = ChatOpenAI(
                 model=self.config["quick_think_llm"],
                 base_url=custom_base_url,
                 api_key=custom_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             
             logger.info(f"✅ [自定义OpenAI] 已配置自定义端点: {custom_base_url}")
@@ -222,20 +243,24 @@ class TradingAgentsGraph:
             logger.info(f"🔧 [火山引擎] 使用端点: {volcengine_base_url}")
             logger.info(f"🔑 [火山引擎] 使用API密钥: {volcengine_api_key[:20]}...")
             
+            # 从环境变量获取max_tokens设置，默认为2000
+            max_tokens = int(os.getenv('MAX_TOKENS', '2000'))
+            logger.info(f"🔧 [火山引擎] 使用max_tokens: {max_tokens}")
+            
             # 直接使用ChatOpenAI创建LLM实例（兼容OpenAI格式）
             self.deep_thinking_llm = ChatOpenAI(
                 model=self.config["deep_think_llm"],
                 base_url=volcengine_base_url,
                 api_key=volcengine_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             self.quick_thinking_llm = ChatOpenAI(
                 model=self.config["quick_think_llm"],
                 base_url=volcengine_base_url,
                 api_key=volcengine_api_key,
                 temperature=0.1,
-                max_tokens=2000
+                max_tokens=max_tokens
             )
             
             logger.info(f"✅ [火山引擎] 已配置火山引擎端点: {volcengine_base_url}")
