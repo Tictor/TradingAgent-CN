@@ -38,7 +38,7 @@ class AsyncProgressDisplay:
 
             /* 进度条样式美化 */
             .stProgress .st-bo {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
                 border-radius: 10px;
                 height: 12px;
                 animation: progressPulse 2s ease-in-out infinite;
@@ -99,7 +99,7 @@ class AsyncProgressDisplay:
 
             /* 刷新按钮美化 */
             .stButton > button {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
                 color: white;
                 border: none;
                 border-radius: 12px;
@@ -123,7 +123,7 @@ class AsyncProgressDisplay:
             st.markdown('''
             <div style="text-align: center; margin-bottom: 1.5rem;">
                 <h3 style="
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
@@ -213,7 +213,7 @@ class AsyncProgressDisplay:
                         <span style="font-size: 1.2rem;">{status_icon}</span>
                         <span style="font-weight: 600; color: #1976d2;">{step_name}</span>
                         <span style="
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
                             color: white;
                             padding: 0.2rem 0.8rem;
                             border-radius: 20px;
@@ -381,7 +381,7 @@ class AsyncProgressDisplay:
                             <span style="font-size: 1rem;">⏱️</span>
                             <span style="font-weight: 600; color: #495057;">已用时间</span>
                             <span style="
-                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
                                 color: white;
                                 padding: 0.2rem 0.8rem;
                                 border-radius: 15px;

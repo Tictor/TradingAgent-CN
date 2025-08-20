@@ -353,10 +353,10 @@ def create_smart_progress_callback(display: SmartStreamlitProgressDisplay, analy
 def create_progress_callback(display, analysts=None, research_depth=2, llm_provider="dashscope") -> Callable:
     """创建进度回调函数（向后兼容）"""
     if hasattr(display, '__class__') and 'Smart' in display.__class__.__name__:
-        return create_smart_progress_callback(display, analysts or ['market', 'fundamentals'], research_depth, llm_provider)
+        return create_smart_progress_callback(display, analysts or ['market', 'social', 'news', 'fundamentals'], research_depth, llm_provider)
     else:
         # 旧版本兼容
-        tracker = SmartAnalysisProgressTracker(analysts or ['market', 'fundamentals'], research_depth, llm_provider)
+        tracker = SmartAnalysisProgressTracker(analysts or ['market', 'social', 'news', 'fundamentals'], research_depth, llm_provider)
 
         def callback(message: str, step: Optional[int] = None, total_steps: Optional[int] = None):
             if step is not None and total_steps is not None:

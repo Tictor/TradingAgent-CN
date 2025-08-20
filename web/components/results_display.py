@@ -43,7 +43,7 @@ def render_results(results):
     }
 
     .results-header h1 {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -90,7 +90,7 @@ def render_results(results):
     .stMetric > div > div:nth-child(2) {
         font-weight: 800 !important;
         font-size: 1.8rem !important;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -115,7 +115,7 @@ def render_results(results):
 
     /* 展开器标题样式 */
     .stExpander .streamlit-expanderHeader {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         color: white;
         font-weight: 700;
         padding: 1rem 1.5rem;
@@ -124,7 +124,7 @@ def render_results(results):
     }
 
     .stExpander .streamlit-expanderHeader:hover {
-        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        background: linear-gradient(135deg, #4338ca 0%, #0891b2 100%);
     }
 
     /* 展开器内容样式 */
@@ -183,7 +183,7 @@ def render_results(results):
     hr {
         border: none;
         height: 2px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         border-radius: 2px;
         margin: 2rem 0;
         opacity: 0.3;
@@ -324,7 +324,7 @@ def render_decision_summary(decision, stock_symbol=None):
         border: 1px solid rgba(102, 126, 234, 0.2);
     ">
         <h3 style="
-            color: #667eea;
+            color: #4f46e5;
             font-weight: 700;
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
@@ -354,7 +354,7 @@ def render_decision_summary(decision, stock_symbol=None):
                 <div style="
                     width: 80px;
                     height: 80px;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
                     border-radius: 50%;
                     margin: 0 auto 1rem;
                     display: flex;
@@ -365,7 +365,7 @@ def render_decision_summary(decision, stock_symbol=None):
                     animation: pulse 2s ease-in-out infinite;
                 ">📊</div>
                 <h3 style="
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
@@ -586,9 +586,9 @@ def render_detailed_analysis(state):
 
     /* 选中的标签页样式 */
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%) !important;
         color: white !important;
-        border-color: #667eea !important;
+        border-color: #4f46e5 !important;
         box-shadow: 0 4px 12px rgba(102,126,234,0.3) !important;
         transform: translateY(-2px);
     }

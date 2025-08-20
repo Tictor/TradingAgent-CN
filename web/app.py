@@ -57,9 +57,9 @@ st.markdown("""
         visibility: hidden !important;
     }
     
-    /* 全局样式优化 */
+    /* 全局样式优化 - 更现代的蓝色系配色 */
     .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 50%, #0ea5e9 100%);
         font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
     }
     
@@ -71,14 +71,15 @@ st.markdown("""
     
     /* 主头部样式 */
     .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         padding: 2rem;
         border-radius: 20px;
         margin-bottom: 2rem;
         color: white;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.25);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .main-header h1 {
@@ -119,13 +120,13 @@ st.markdown("""
     }
     
     .analysis-section {
-        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.9) 100%);
         padding: 2rem;
         border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.15);
         margin: 1.5rem 0;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
+        border: 1px solid rgba(79, 70, 229, 0.1);
+        backdrop-filter: blur(15px);
     }
     
     /* 表单样式优化 */
@@ -143,7 +144,7 @@ st.markdown("""
     }
     
     .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         color: white;
         border: none;
         border-radius: 12px;
@@ -151,13 +152,13 @@ st.markdown("""
         font-weight: 600;
         font-size: 1rem;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
     }
     
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+        background: linear-gradient(135deg, #4338ca 0%, #0891b2 100%);
     }
     
     .stButton > button:active {
@@ -194,13 +195,13 @@ st.markdown("""
     
     /* 进度条样式 */
     .stProgress > div > div > div {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #4f46e5 0%, #06b6d4 100%);
         border-radius: 10px;
     }
     
     /* 侧边栏优化 */
     .css-1d391kg {
-        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(180deg, #4f46e5 0%, #06b6d4 100%);
     }
     
     /* 数据显示优化 */
@@ -224,9 +225,9 @@ st.markdown("""
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         color: white;
-        border-color: #667eea;
+        border-color: #4f46e5;
     }
     
     /* 动画效果 */
@@ -268,7 +269,12 @@ def initialize_session_state():
     if 'current_analysis_id' not in st.session_state:
         st.session_state.current_analysis_id = None
     if 'form_config' not in st.session_state:
-        st.session_state.form_config = None
+        # 设置默认配置：全选所有分析师
+        st.session_state.form_config = {
+            'selected_analysts': ['market', 'social', 'news', 'fundamentals'],
+            'market_type': 'A股',
+            'research_depth': 3
+        }
 
     # 尝试从最新完成的分析中恢复结果
     if not st.session_state.analysis_results:
@@ -760,9 +766,6 @@ def main():
     
     with col1:
         # 1. 分析配置区域
-
-        st.header("⚙️ 分析配置")
-
         # 渲染分析表单
         try:
             form_data = render_analysis_form()

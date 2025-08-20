@@ -231,14 +231,14 @@ def render_auto_save_settings():
     
     st.markdown("""
     <div style="
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
         padding: 1.5rem;
         border-radius: 15px;
         margin: 1rem 0;
-        border: 1px solid rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(79, 70, 229, 0.2);
     ">
         <h4 style="
-            color: #667eea;
+            color: #4f46e5;
             font-weight: 700;
             margin-bottom: 1rem;
         ">💾 自动保存设置</h4>

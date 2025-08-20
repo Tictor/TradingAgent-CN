@@ -29,7 +29,7 @@ def render_analysis_form():
 
     /* 表单标题样式 */
     .stForm h3 {
-        color: #667eea;
+        color: #4f46e5;
         font-weight: 700;
         margin-bottom: 1.5rem;
         text-align: center;
@@ -45,8 +45,8 @@ def render_analysis_form():
     }
 
     .stForm .stSelectbox > div > div:focus-within {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         transform: translateY(-1px);
     }
 
@@ -58,8 +58,8 @@ def render_analysis_form():
     }
 
     .stForm .stTextInput > div > div:focus-within {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         transform: translateY(-1px);
     }
 
@@ -71,8 +71,8 @@ def render_analysis_form():
     }
 
     .stForm .stDateInput > div > div:focus-within {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         transform: translateY(-1px);
     }
 
@@ -88,14 +88,14 @@ def render_analysis_form():
     }
 
     .stForm .stMultiSelect > div > div:focus-within {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         transform: translateY(-1px);
     }
 
     /* 表单提交按钮样式 */
     .stForm .stFormSubmitButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
         color: white;
         border: none;
         border-radius: 15px;
@@ -103,15 +103,15 @@ def render_analysis_form():
         font-weight: 700;
         font-size: 1.1rem;
         transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
         width: 100%;
         margin-top: 1rem;
     }
 
     .stForm .stFormSubmitButton > button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        box-shadow: 0 12px 35px rgba(79, 70, 229, 0.4);
+        background: linear-gradient(135deg, #4338ca 0%, #0891b2 100%);
     }
 
     /* 标签样式优化 */
@@ -152,11 +152,22 @@ def render_analysis_form():
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
-    st.markdown("### 📋 分析配置", unsafe_allow_html=True)
+    st.markdown("### 📋 分析配置")
 
-    # 获取缓存的表单配置（确保不为None）
-    cached_config = st.session_state.get('form_config') or {}
+    # 获取缓存的表单配置
+    cached_config = st.session_state.get('form_config')
+    
+    # 首次访问：设置默认全选
+    if cached_config is None:
+        default_config = {
+            'selected_analysts': ['market', 'social', 'news', 'fundamentals']
+        }
+        st.session_state.form_config = default_config
+        cached_config = default_config
+        logger.debug("📊 [首次访问] 设置默认全选所有分析师")
+    else:
+        # 后续访问：保持上次选择
+        logger.debug(f"📊 [保持选择] 使用上次的分析师选择: {cached_config.get('selected_analysts', [])}")
 
     # 调试信息（只在没有分析运行时记录，避免重复）
     if not st.session_state.get('analysis_running', False):
@@ -164,6 +175,67 @@ def render_analysis_form():
             logger.debug(f"📊 [配置恢复] 使用缓存配置: {cached_config}")
         else:
             logger.debug("📊 [配置恢复] 使用默认配置")
+
+    # ------------------ 将分析师团队选择移到表单外，实时更新 ------------------
+    st.markdown("### 👥 选择分析师团队")
+    col_a, col_b = st.columns(2)
+
+    # 获取缓存的分析师选择
+    cached_analysts = cached_config.get('selected_analysts', ['market', 'social', 'news', 'fundamentals'])
+    logger.debug(f"📊 [分析师选择] cached_analysts(outside form): {cached_analysts}")
+
+    with col_a:
+        market_analyst = st.checkbox(
+            "📈 市场分析师",
+            value='market' in cached_analysts,
+            help="专注于技术面分析、价格趋势、技术指标",
+            key="market_analyst_checkbox"
+        )
+        social_analyst = st.checkbox(
+            "💭 社交媒体分析师",
+            value='social' in cached_analysts,
+            help="分析社交媒体情绪、投资者情绪指标",
+            key="social_analyst_checkbox"
+        )
+    with col_b:
+        news_analyst = st.checkbox(
+            "📰 新闻分析师",
+            value='news' in cached_analysts,
+            help="分析相关新闻事件、市场动态影响",
+            key="news_analyst_checkbox"
+        )
+        fundamentals_analyst = st.checkbox(
+            "💰 基本面分析师",
+            value='fundamentals' in cached_analysts,
+            help="分析财务数据、公司基本面、估值水平",
+            key="fundamentals_analyst_checkbox"
+        )
+
+    # 收集选中的分析师（表单外，实时更新）
+    selected_analysts = []
+    if market_analyst:
+        selected_analysts.append(("market", "市场分析师"))
+    if social_analyst:
+        selected_analysts.append(("social", "社交媒体分析师"))  # 保持与后端一致的 key 'social'
+    if news_analyst:
+        selected_analysts.append(("news", "新闻分析师"))
+    if fundamentals_analyst:
+        selected_analysts.append(("fundamentals", "基本面分析师"))
+
+    # 动态显示选择摘要（表单外，随勾选立即变化）
+    if selected_analysts:
+        analyst_names = [a[1] for a in selected_analysts]
+        st.success(f"已选择 {len(selected_analysts)} 个分析师: {', '.join(analyst_names)}")
+    else:
+        st.warning("请至少选择一个分析师")
+
+    # 同步到 form_config，避免之后的表单内逻辑被旧缓存覆盖
+    try:
+        st.session_state.form_config = st.session_state.get('form_config', {}) or {}
+        st.session_state.form_config['selected_analysts'] = [a[0] for a in selected_analysts]
+    except Exception as e:
+        logger.warning(f"⚠️ [配置同步] 更新 selected_analysts 失败: {e}")
+    # --------------------------------------------------------------------
 
     # 创建表单
     with st.form("analysis_form", clear_on_submit=False):
@@ -251,57 +323,6 @@ def render_analysis_form():
                 help="选择分析的深度级别，级别越高分析越详细但耗时更长"
             )
         
-        # 分析师团队选择
-        st.markdown("### 👥 选择分析师团队")
-        
-        col1, col2 = st.columns(2)
-        
-        # 获取缓存的分析师选择
-        cached_analysts = cached_config.get('selected_analysts', ['market', 'fundamentals']) if cached_config else ['market', 'fundamentals']
-
-        with col1:
-            market_analyst = st.checkbox(
-                "📈 市场分析师",
-                value='market' in cached_analysts,
-                help="专注于技术面分析、价格趋势、技术指标"
-            )
-
-            social_analyst = st.checkbox(
-                "💭 社交媒体分析师",
-                value='social' in cached_analysts,
-                help="分析社交媒体情绪、投资者情绪指标"
-            )
-
-        with col2:
-            news_analyst = st.checkbox(
-                "📰 新闻分析师",
-                value='news' in cached_analysts,
-                help="分析相关新闻事件、市场动态影响"
-            )
-
-            fundamentals_analyst = st.checkbox(
-                "💰 基本面分析师",
-                value='fundamentals' in cached_analysts,
-                help="分析财务数据、公司基本面、估值水平"
-            )
-        
-        # 收集选中的分析师
-        selected_analysts = []
-        if market_analyst:
-            selected_analysts.append(("market", "市场分析师"))
-        if social_analyst:
-            selected_analysts.append(("social", "社交媒体分析师"))
-        if news_analyst:
-            selected_analysts.append(("news", "新闻分析师"))
-        if fundamentals_analyst:
-            selected_analysts.append(("fundamentals", "基本面分析师"))
-        
-        # 显示选择摘要
-        if selected_analysts:
-            st.success(f"已选择 {len(selected_analysts)} 个分析师: {', '.join([a[1] for a in selected_analysts])}")
-        else:
-            st.warning("请至少选择一个分析师")
-        
         # 高级选项
         with st.expander("🔧 高级选项"):
             include_sentiment = st.checkbox(
@@ -360,22 +381,21 @@ def render_analysis_form():
             'custom_prompt': custom_prompt
         }
 
-        # 如果配置发生变化，立即保存（即使没有提交）
-        if current_config != initial_config:
-            st.session_state.form_config = current_config
-            try:
-                from utils.smart_session_manager import smart_session_manager
-                current_analysis_id = st.session_state.get('current_analysis_id', 'form_config_only')
-                smart_session_manager.save_analysis_state(
-                    analysis_id=current_analysis_id,
-                    status=st.session_state.get('analysis_running', False) and 'running' or 'idle',
-                    stock_symbol=stock_symbol,
-                    market_type=market_type,
-                    form_config=current_config
-                )
-                logger.debug(f"📊 [配置自动保存] 表单配置已更新")
-            except Exception as e:
-                logger.warning(f"⚠️ [配置自动保存] 保存失败: {e}")
+        # 实时保存用户选择（避免缓存覆盖用户选择）
+        st.session_state.form_config = current_config
+        try:
+            from utils.smart_session_manager import smart_session_manager
+            current_analysis_id = st.session_state.get('current_analysis_id', 'form_config_only')
+            smart_session_manager.save_analysis_state(
+                analysis_id=current_analysis_id,
+                status=st.session_state.get('analysis_running', False) and 'running' or 'idle',
+                stock_symbol=stock_symbol,
+                market_type=market_type,
+                form_config=current_config
+            )
+            logger.debug(f"📊 [配置自动保存] 表单配置已更新")
+        except Exception as e:
+            logger.warning(f"⚠️ [配置自动保存] 保存失败: {e}")
 
         # 提交按钮（不禁用，让用户可以点击）
         submitted = st.form_submit_button(
@@ -438,14 +458,11 @@ def render_analysis_form():
         logger.debug(f"🔍 [FORM DEBUG] 返回的表单数据: {form_data}")
         logger.debug(f"🔍 [FORM DEBUG] ===== 表单提交结束 =====")
 
-        st.markdown('</div>', unsafe_allow_html=True)
         return form_data
     elif submitted and not stock_symbol:
         # 用户点击了提交但没有输入股票代码
         logger.error(f"🔍 [FORM DEBUG] 提交失败：股票代码为空")
         st.error("❌ 请输入股票代码后再提交")
-        st.markdown('</div>', unsafe_allow_html=True)
         return {'submitted': False}
     else:
-        st.markdown('</div>', unsafe_allow_html=True)
         return {'submitted': False}
