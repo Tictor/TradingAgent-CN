@@ -436,39 +436,99 @@ def render_detailed_analysis(state):
             else:
                 # 对于字符串或其他类型，直接添加
                 available_modules.append(module)
-
+    
     if not available_modules:
         # 显示占位符而不是演示数据
         render_analysis_placeholder()
         return
+    
+    # ——— 统一的响应式布局（带横向滚动） ———
+    # 模块概览（可横向滚动，避免漏看）
+    overview_html = "<div style='overflow-x:auto; white-space: nowrap; padding: 6px 8px; border:1px dashed #e6e9ef; border-radius: 10px; background:#fafbfe; margin-bottom: 10px;'>"
+    for m in available_modules:
+        overview_html += f"<span style='display:inline-flex; align-items:center; gap:6px; padding:6px 10px; margin:4px 6px 4px 0; background:white; border:1px solid #e1e5e9; border-radius:999px; font-size:13px; color:#495057; box-shadow:0 1px 2px rgba(0,0,0,0.05);'>{m['icon']} {m['title']}</span>"
+    overview_html += "</div>"
+    st.markdown(overview_html, unsafe_allow_html=True)
+    st.caption("提示：模块较多或屏幕较窄时，可横向滚动上方标签栏或概览区查看全部模块。")
 
-    # 只为有数据的模块创建标签页 - 移除重复图标
-    tabs = st.tabs([module['title'] for module in available_modules])
+    # 布局选择（自适应/标签页/下拉）
+    layout_choice = st.radio(
+        "选择显示布局",
+        options=["自适应模式", "标签页模式", "下拉选择模式"],
+        index=0,
+        horizontal=True,
+        help="自适应模式：优先使用可横向滚动的标签页；当你更喜欢列表时可切换到下拉模式。\n标签页模式：使用可横向滚动的标签栏，适配窄屏。\n下拉选择模式：用下拉菜单浏览模块。"
+    )
 
-    for i, (tab, module) in enumerate(zip(tabs, available_modules)):
-        with tab:
-            # 在内容区域显示图标和描述
-            st.markdown(f"## {module['icon']} {module['title']}")
-            st.markdown(f"*{module['description']}*")
-            st.markdown("---")
-
-            # 格式化显示内容
-            content = state[module['key']]
-            if isinstance(content, str):
-                st.markdown(content)
-            elif isinstance(content, dict):
-                # 特殊处理团队决策报告的字典结构
-                if module['key'] == 'investment_debate_state':
-                    render_investment_debate_content(content)
-                elif module['key'] == 'risk_debate_state':
-                    render_risk_debate_content(content)
-                else:
-                    # 普通字典格式化显示
-                    for key, value in content.items():
-                        st.subheader(key.replace('_', ' ').title())
-                        st.write(value)
+    def render_module_content(module_key, module_meta):
+        content = state[module_key]
+        if isinstance(content, str):
+            st.markdown(content)
+        elif isinstance(content, dict):
+            if module_meta['key'] == 'investment_debate_state':
+                render_investment_debate_content(content)
+            elif module_meta['key'] == 'risk_debate_state':
+                render_risk_debate_content(content)
             else:
-                st.write(content)
+                for k, v in content.items():
+                    st.subheader(k.replace('_', ' ').title())
+                    st.write(v)
+        else:
+            st.write(content)
+
+    # 标签页样式：确保横向滚动条显眼可见
+    tabs_scroll_css = """
+    <style>
+    .stTabs [data-baseweb="tab-list"] {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        padding-bottom: 8px !important;
+        position: relative !important;
+        scrollbar-width: auto !important;         /* Firefox */
+        scrollbar-color: #ff6b6b #f0f2f6 !important; /* Firefox */
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { height: 10px !important; background-color: #f0f2f6 !important; }
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb { background-color: #ff6b6b !important; border-radius: 6px !important; border: 2px solid #ffffff !important; }
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb:hover { background-color: #ff5252 !important; }
+    .stTabs [data-baseweb="tab"] { flex-shrink: 0 !important; min-width: fit-content !important; }
+    .stTabs [data-baseweb="tab-list"]::after {
+        content: "← 横向滚动查看更多 →" !important;
+        position: absolute !important; right: 8px !important; top: -18px !important;
+        font-size: 12px !important; color: #ff6b6b !important; background: rgba(255,255,255,0.9) !important;
+        padding: 2px 8px !important; border-radius: 10px !important; border: 1px solid #ff6b6b !important; font-weight: 600 !important;
+    }
+    </style>
+    """
+
+    if layout_choice == "下拉选择模式":
+        # 下拉模式
+        default_index = next((i for i, m in enumerate(available_modules) if m.get('key') == 'final_trade_decision'), 0)
+        selected_key = st.selectbox(
+            "选择要查看的报告模块",
+            options=[m['key'] for m in available_modules],
+            index=default_index,
+            format_func=lambda k: next((m['title'] for m in available_modules if m['key'] == k), k),
+            key="analysis_module_selector_unified",
+        )
+        selected_module = next(m for m in available_modules if m['key'] == selected_key)
+        st.markdown(f"## {selected_module['icon']} {selected_module['title']}")
+        st.markdown(f"*{selected_module['description']}*")
+        st.markdown("---")
+        render_module_content(selected_module['key'], selected_module)
+    else:
+        # 自适应与标签页模式统一使用：可横向滚动的标签页
+        st.markdown(tabs_scroll_css, unsafe_allow_html=True)
+        if len(available_modules) > 4:
+            st.info("💡 标签页较多时，可横向滚动标签栏来查看全部模块")
+        tabs = st.tabs([m['title'] for m in available_modules])
+        for tab, module in zip(tabs, available_modules):
+            with tab:
+                st.markdown(f"## {module['icon']} {module['title']}")
+                st.markdown(f"*{module['description']}*")
+                st.markdown("---")
+                render_module_content(module['key'], module)
 
 def render_investment_debate_content(content):
     """渲染研究团队决策内容"""
