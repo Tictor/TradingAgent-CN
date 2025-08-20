@@ -21,13 +21,128 @@ class AsyncProgressDisplay:
         self.analysis_id = analysis_id
         self.refresh_interval = refresh_interval
         
-        # 创建显示组件
+        # 添加现代化进度显示样式
         with self.container:
+            st.markdown("""
+            <style>
+            /* 进度条容器美化 */
+            .progress-container {
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                padding: 2rem;
+                border-radius: 20px;
+                margin: 1rem 0;
+                border: 1px solid rgba(102, 126, 234, 0.2);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+
+            /* 进度条样式美化 */
+            .stProgress .st-bo {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 10px;
+                height: 12px;
+                animation: progressPulse 2s ease-in-out infinite;
+            }
+
+            .stProgress .st-bn {
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+                height: 12px;
+                backdrop-filter: blur(5px);
+            }
+
+            /* 状态文本美化 */
+            .status-text {
+                text-align: center;
+                font-weight: 600;
+                font-size: 1.1rem;
+                color: #495057;
+                margin-bottom: 1rem;
+            }
+
+            .step-info {
+                background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                border: 1px solid rgba(102, 126, 234, 0.1);
+                margin: 1rem 0;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            }
+
+            .time-info {
+                text-align: center;
+                color: #6c757d;
+                font-size: 0.9rem;
+                margin-top: 1rem;
+            }
+
+            /* 动画效果 */
+            @keyframes progressPulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.8; }
+            }
+
+            .progress-container {
+                animation: fadeInUp 0.6s ease-out;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* 刷新按钮美化 */
+            .stButton > button {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                padding: 0.5rem 1.5rem;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            }
+
+            .stButton > button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # 进度显示容器
+            st.markdown('<div class="progress-container">', unsafe_allow_html=True)
+            
+            # 进度头部
+            st.markdown('''
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h3 style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    color: transparent;
+                    font-weight: 700;
+                    margin-bottom: 0.5rem;
+                ">🔄 分析进度</h3>
+                <p style="color: #6c757d; margin: 0;">AI智能体团队正在深度分析中...</p>
+            </div>
+            ''', unsafe_allow_html=True)
+            
+            # 创建显示组件
             self.progress_bar = st.progress(0)
             self.status_text = st.empty()
             self.step_info = st.empty()
             self.time_info = st.empty()
             self.refresh_button = st.empty()
+            
+            st.markdown('</div>', unsafe_allow_html=True)
         
         # 初始化状态
         self.last_update = 0
@@ -84,14 +199,70 @@ class AsyncProgressDisplay:
                 'failed': '❌'
             }.get(status, '🔄')
             
-            # 显示当前状态
-            self.status_text.info(f"{status_icon} **当前状态**: {last_message}")
+            # 美化的状态显示
+            if status == 'running':
+                self.status_text.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(3, 169, 244, 0.1) 100%);
+                    padding: 1rem;
+                    border-radius: 12px;
+                    border-left: 4px solid #2196f3;
+                    margin: 1rem 0;
+                ">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <span style="font-size: 1.2rem;">{status_icon}</span>
+                        <span style="font-weight: 600; color: #1976d2;">{step_name}</span>
+                        <span style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            padding: 0.2rem 0.8rem;
+                            border-radius: 20px;
+                            font-size: 0.8rem;
+                            font-weight: 600;
+                        ">{current_step}/{total_steps}</span>
+                    </div>
+                    <div style="text-align: center; color: #1976d2; font-size: 0.9rem; margin-top: 0.5rem;">{last_message}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                self.status_text.info(f"{status_icon} **当前状态**: {last_message}")
             
-            # 显示步骤信息
+            # 美化的步骤信息显示
             if status == 'failed':
-                self.step_info.error(f"❌ **分析失败**: {last_message}")
+                self.step_info.markdown(f"""
+                <div class="step-info" style="
+                    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(239, 83, 80, 0.1) 100%);
+                    border-left: 4px solid #f44336;
+                ">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.2rem;">❌</span>
+                        <span style="font-weight: 700; color: #d32f2f;">分析失败</span>
+                    </div>
+                    <div style="color: #f44336; font-size: 0.9rem;">{last_message}</div>
+                </div>
+                """, unsafe_allow_html=True)
             elif status == 'completed':
-                self.step_info.success(f"🎉 **分析完成**: 所有步骤已完成")
+                self.step_info.markdown(f"""
+                <div class="step-info" style="
+                    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(129, 199, 132, 0.1) 100%);
+                    border-left: 4px solid #4caf50;
+                ">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.2rem;">🎉</span>
+                        <span style="font-weight: 700; color: #388e3c;">分析完成</span>
+                    </div>
+                    <div style="color: #4caf50; font-size: 0.9rem;">所有智能体团队分析完毕，可以查看详细报告</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # 运行中的步骤信息
+                if step_description:
+                    self.step_info.markdown(f"""
+                    <div class="step-info">
+                        <div style="font-weight: 600; color: #495057; margin-bottom: 0.5rem;">📋 当前任务</div>
+                        <div style="color: #6c757d; font-size: 0.95rem;">{step_description}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
                 # 添加查看报告按钮
                 with self.step_info:
@@ -114,10 +285,6 @@ class AsyncProgressDisplay:
                         st.session_state.show_analysis_results = True
                         st.session_state.current_analysis_id = analysis_id
                         st.rerun()
-            else:
-                self.step_info.info(f"📊 **进度**: 第 {current_step + 1} 步，共 {total_steps} 步 ({progress_percentage:.1f}%)\n\n"
-                                  f"**当前步骤**: {step_name}\n\n"
-                                  f"**步骤说明**: {step_description}")
             
             # 时间信息 - 实时计算已用时间
             start_time = progress_data.get('start_time', 0)
@@ -138,12 +305,105 @@ class AsyncProgressDisplay:
             # 重新计算剩余时间
             remaining_time = max(estimated_total_time - real_elapsed_time, 0)
             
+            # 美化的时间信息显示
             if status == 'completed':
-                self.time_info.success(f"⏱️ **已用时间**: {format_time(real_elapsed_time)} | **总耗时**: {format_time(real_elapsed_time)}")
+                self.time_info.markdown(f"""
+                <div class="time-info" style="
+                    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(129, 199, 132, 0.1) 100%);
+                    padding: 1rem;
+                    border-radius: 12px;
+                    margin-top: 1rem;
+                    text-align: center;
+                    border: 1px solid rgba(76, 175, 80, 0.2);
+                ">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 1rem;">⏱️</span>
+                            <span style="font-weight: 600; color: #495057;">总耗时</span>
+                            <span style="
+                                background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+                                color: white;
+                                padding: 0.2rem 0.8rem;
+                                border-radius: 15px;
+                                font-size: 0.85rem;
+                                font-weight: 600;
+                            ">{format_time(real_elapsed_time)}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 1rem;">✅</span>
+                            <span style="font-weight: 600; color: #28a745;">分析完成</span>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             elif status == 'failed':
-                self.time_info.error(f"⏱️ **已用时间**: {format_time(real_elapsed_time)} | **分析中断**")
+                self.time_info.markdown(f"""
+                <div class="time-info" style="
+                    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(239, 83, 80, 0.1) 100%);
+                    padding: 1rem;
+                    border-radius: 12px;
+                    margin-top: 1rem;
+                    text-align: center;
+                    border: 1px solid rgba(244, 67, 54, 0.2);
+                ">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 1rem;">⏱️</span>
+                            <span style="font-weight: 600; color: #495057;">已用时间</span>
+                            <span style="
+                                background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
+                                color: white;
+                                padding: 0.2rem 0.8rem;
+                                border-radius: 15px;
+                                font-size: 0.85rem;
+                                font-weight: 600;
+                            ">{format_time(real_elapsed_time)}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 1rem;">❌</span>
+                            <span style="font-weight: 600; color: #d32f2f;">分析中断</span>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                self.time_info.info(f"⏱️ **已用时间**: {format_time(real_elapsed_time)} | **预计剩余**: {format_time(remaining_time)}")
+                self.time_info.markdown(f"""
+                <div class="time-info" style="
+                    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(3, 169, 244, 0.1) 100%);
+                    padding: 1rem;
+                    border-radius: 12px;
+                    margin-top: 1rem;
+                    text-align: center;
+                    border: 1px solid rgba(33, 150, 243, 0.2);
+                ">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 1rem;">⏱️</span>
+                            <span style="font-weight: 600; color: #495057;">已用时间</span>
+                            <span style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                padding: 0.2rem 0.8rem;
+                                border-radius: 15px;
+                                font-size: 0.85rem;
+                                font-weight: 600;
+                            ">{format_time(real_elapsed_time)}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 1rem;">⏳</span>
+                            <span style="font-weight: 600; color: #6c757d;">预计剩余</span>
+                            <span style="
+                                background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+                                color: white;
+                                padding: 0.2rem 0.8rem;
+                                border-radius: 15px;
+                                font-size: 0.85rem;
+                                font-weight: 600;
+                            ">{format_time(remaining_time)}</span>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             
             # 刷新按钮（仅在运行时显示）
             if status == 'running':

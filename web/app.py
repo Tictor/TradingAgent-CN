@@ -34,6 +34,7 @@ from utils.progress_tracker import SmartStreamlitProgressDisplay, create_smart_p
 from utils.async_progress_tracker import AsyncProgressTracker
 from components.async_progress_display import display_unified_progress
 from utils.smart_session_manager import get_persistent_analysis_id, set_persistent_analysis_id
+from utils.auto_saver import auto_save_analysis_results, show_auto_save_notification, render_auto_save_settings
 
 # 设置页面配置
 st.set_page_config(
@@ -44,119 +45,214 @@ st.set_page_config(
     menu_items=None
 )
 
-# 自定义CSS样式
+# 自定义CSS样式 - 现代化设计
 st.markdown("""
 <style>
-    /* 隐藏Streamlit顶部工具栏和Deploy按钮 - 多种选择器确保兼容性 */
-    .stAppToolbar {
+    /* 隐藏Streamlit默认元素 */
+    .stAppToolbar, header[data-testid="stHeader"], .stDeployButton,
+    [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"],
+    .stApp > header, .stApp > div[data-testid="stToolbar"], #MainMenu, footer,
+    .viewerBadge_container__1QSob, div[data-testid="stToolbar"] {
         display: none !important;
-    }
-    
-    header[data-testid="stHeader"] {
-        display: none !important;
-    }
-    
-    .stDeployButton {
-        display: none !important;
-    }
-    
-    /* 新版本Streamlit的Deploy按钮选择器 */
-    [data-testid="stToolbar"] {
-        display: none !important;
-    }
-    
-    [data-testid="stDecoration"] {
-        display: none !important;
-    }
-    
-    [data-testid="stStatusWidget"] {
-        display: none !important;
-    }
-    
-    /* 隐藏整个顶部区域 */
-    .stApp > header {
-        display: none !important;
-    }
-    
-    .stApp > div[data-testid="stToolbar"] {
-        display: none !important;
-    }
-    
-    /* 隐藏主菜单按钮 */
-    #MainMenu {
         visibility: hidden !important;
-        display: none !important;
     }
     
-    /* 隐藏页脚 */
-    footer {
-        visibility: hidden !important;
-        display: none !important;
+    /* 全局样式优化 */
+    .stApp {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
     }
     
-    /* 隐藏"Made with Streamlit"标识 */
-    .viewerBadge_container__1QSob {
-        display: none !important;
+    .main .block-container {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
     }
     
-    /* 隐藏所有可能的工具栏元素 */
-    div[data-testid="stToolbar"] {
-        display: none !important;
-    }
-    
-    /* 隐藏右上角的所有按钮 */
-    .stApp > div > div > div > div > section > div {
-        padding-top: 0 !important;
-    }
-    
-    /* 应用样式 */
+    /* 主头部样式 */
     .main-header {
-        background: linear-gradient(90deg, #1f77b4, #ff7f0e);
-        padding: 1rem;
-        border-radius: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px;
         margin-bottom: 2rem;
         color: white;
         text-align: center;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        backdrop-filter: blur(10px);
+    }
+    
+    .main-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .main-header p {
+        margin: 0.5rem 0 0 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    /* 卡片样式 */
+    .stApp > div[data-testid="stAppViewContainer"] > .main {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        margin: 1rem;
+        padding: 1rem;
     }
     
     .metric-card {
-        background: #f0f2f6;
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 4px solid #1f77b4;
-        margin: 0.5rem 0;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin: 0.8rem 0;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
     }
     
     .analysis-section {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin: 1rem 0;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin: 1.5rem 0;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
     }
     
+    /* 表单样式优化 */
+    .stSelectbox > div > div, .stTextInput > div > div {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .stSelectbox > div > div:focus-within, .stTextInput > div > div:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(0);
+    }
+    
+    /* 状态框样式 */
     .success-box {
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
-        border-radius: 5px;
-        padding: 1rem;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+        border-radius: 15px;
+        padding: 1.5rem;
         margin: 1rem 0;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
     }
     
     .warning-box {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 5px;
-        padding: 1rem;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 2px solid #ffc107;
+        border-radius: 15px;
+        padding: 1.5rem;
         margin: 1rem 0;
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.2);
     }
     
     .error-box {
-        background: #f8d7da;
-        border: 1px solid #f5c6cb;
-        border-radius: 5px;
-        padding: 1rem;
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 2px solid #dc3545;
+        border-radius: 15px;
+        padding: 1.5rem;
         margin: 1rem 0;
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.2);
+    }
+    
+    /* 进度条样式 */
+    .stProgress > div > div > div {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    /* 侧边栏优化 */
+    .css-1d391kg {
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    /* 数据显示优化 */
+    .stDataFrame {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 标签页样式 */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 12px;
+        padding: 12px 24px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+    }
+    
+    /* 动画效果 */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .analysis-section, .metric-card {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .main-header h1 {
+            font-size: 2rem;
+        }
+        
+        .analysis-section {
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .metric-card {
+            padding: 1rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -197,6 +293,11 @@ def initialize_session_state():
                         # 检查分析状态
                         analysis_status = progress_data.get('status', 'completed')
                         st.session_state.analysis_running = (analysis_status == 'running')
+                        
+                        # 如果分析已完成，触发自动保存
+                        if analysis_status == 'completed':
+                            save_info = auto_save_analysis_results(formatted_results)
+                            st.session_state.auto_save_info = save_info
                         # 恢复股票信息
                         if 'stock_symbol' in raw_results:
                             st.session_state.last_stock_symbol = raw_results.get('stock_symbol', '')
@@ -890,6 +991,10 @@ def main():
                             st.session_state.analysis_results = formatted_results
                             st.session_state.analysis_running = False
                             logger.info(f"📊 [结果同步] 恢复分析结果: {current_analysis_id}")
+                            
+                            # 触发自动保存（分析已完成）
+                            save_info = auto_save_analysis_results(formatted_results)
+                            st.session_state.auto_save_info = save_info
 
                             # 检查是否已经刷新过，避免重复刷新
                             refresh_key = f"results_refreshed_{current_analysis_id}"
@@ -943,6 +1048,14 @@ def main():
         if should_show_results:
             st.markdown("---")
             st.header("📋 分析报告")
+            
+            # 显示自动保存通知
+            auto_save_info = st.session_state.get('auto_save_info')
+            if auto_save_info:
+                show_auto_save_notification(auto_save_info)
+                # 清除通知，避免重复显示
+                st.session_state.auto_save_info = None
+            
             render_results(analysis_results)
             logger.info(f"✅ [布局] 分析报告已显示")
 

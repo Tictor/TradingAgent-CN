@@ -42,125 +42,226 @@ def render_sidebar():
     </script>
     """, unsafe_allow_html=True)
 
-    # 优化侧边栏样式
+    # 优化侧边栏样式 - 现代化设计
     st.markdown("""
     <style>
-    /* 优化侧边栏宽度 - 调整为320px */
+    /* 侧边栏基础样式 */
     section[data-testid="stSidebar"] {
-        width: 320px !important;
-        min-width: 320px !important;
-        max-width: 320px !important;
+        width: 360px !important;
+        min-width: 360px !important;
+        max-width: 360px !important;
+        background: linear-gradient(180deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* 优化侧边栏内容容器 */
     section[data-testid="stSidebar"] > div {
-        width: 320px !important;
-        min-width: 320px !important;
-        max-width: 320px !important;
+        width: 360px !important;
+        background: transparent;
     }
 
-    /* 强制减少侧边栏内边距 - 多种选择器确保生效 */
+    /* 侧边栏内容边距 */
     section[data-testid="stSidebar"] .block-container,
-    section[data-testid="stSidebar"] > div > div,
-    .css-1d391kg,
-    .css-1lcbmhc,
-    .css-1cypcdb {
-        padding-top: 0.75rem !important;
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
-        padding-bottom: 0.75rem !important;
+    section[data-testid="stSidebar"] > div > div {
+        padding: 1rem 1rem !important;
     }
 
-    /* 侧边栏内所有元素的边距控制 */
-    section[data-testid="stSidebar"] * {
-        box-sizing: border-box !important;
+    /* 标题样式 */
+    section[data-testid="stSidebar"] h3 {
+        color: white !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        margin: 1rem 0 0.8rem 0 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+        padding: 0.6rem 1rem !important;
+        border-radius: 12px;
+        border-left: 3px solid rgba(255,255,255,0.6);
     }
 
-    /* 优化selectbox容器 */
+    /* 选择框样式优化 */
     section[data-testid="stSidebar"] .stSelectbox {
-        margin-bottom: 0.4rem !important;
-        width: 100% !important;
+        margin-bottom: 1rem !important;
     }
 
-    /* 优化selectbox下拉框 - 调整为适合320px */
-    section[data-testid="stSidebar"] .stSelectbox > div > div,
-    section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] {
-        width: 100% !important;
-        min-width: 260px !important;
-        max-width: 280px !important;
-    }
-
-    /* 优化下拉框选项文本 */
     section[data-testid="stSidebar"] .stSelectbox label {
-        font-size: 0.85rem !important;
+        color: white !important;
         font-weight: 600 !important;
-        margin-bottom: 0.2rem !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
 
-    /* 优化文本输入框 */
-    section[data-testid="stSidebar"] .stTextInput > div > div > input {
-        font-size: 0.8rem !important;
-        padding: 0.3rem 0.5rem !important;
+    section[data-testid="stSidebar"] .stSelectbox > div > div {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 2px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 12px !important;
+        backdrop-filter: blur(10px);
+        color: white !important;
+        transition: all 0.3s ease;
+        min-height: 3rem;
         width: 100% !important;
     }
 
-    /* 优化按钮样式 */
+    section[data-testid="stSidebar"] .stSelectbox > div > div:hover {
+        border-color: rgba(255, 255, 255, 0.4) !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 文本输入框样式 */
+    section[data-testid="stSidebar"] .stTextInput label {
+        color: white !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        margin-bottom: 0.5rem !important;
+    }
+
+    section[data-testid="stSidebar"] .stTextInput > div > div {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 2px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 12px !important;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    section[data-testid="stSidebar"] .stTextInput > div > div > input {
+        color: white !important;
+        font-size: 0.9rem !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0.8rem 1rem !important;
+    }
+
+    section[data-testid="stSidebar"] .stTextInput > div > div > input::placeholder {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    section[data-testid="stSidebar"] .stTextInput > div > div:focus-within {
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+    }
+
+    /* 按钮样式优化 */
     section[data-testid="stSidebar"] .stButton > button {
         width: 100% !important;
-        font-size: 0.8rem !important;
-        padding: 0.3rem 0.5rem !important;
-        margin: 0.1rem 0 !important;
-        border-radius: 0.3rem !important;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+        color: white !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 12px !important;
+        padding: 0.8rem 1.2rem !important;
+        margin: 0.4rem 0 !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        min-height: 3rem;
     }
 
-    /* 优化标题样式 */
-    section[data-testid="stSidebar"] h3 {
-        font-size: 1rem !important;
-        margin-bottom: 0.5rem !important;
-        margin-top: 0.3rem !important;
-        padding: 0 !important;
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
 
-    /* 优化info框样式 */
+    /* 信息框样式 */
     section[data-testid="stSidebar"] .stAlert {
-        padding: 0.4rem !important;
-        margin: 0.3rem 0 !important;
-        font-size: 0.75rem !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+        margin: 0.8rem 0 !important;
+        color: white !important;
+        backdrop-filter: blur(10px);
+        font-size: 0.85rem !important;
     }
 
-    /* 优化markdown文本 */
-    section[data-testid="stSidebar"] .stMarkdown {
-        margin-bottom: 0.3rem !important;
-        padding: 0 !important;
+    section[data-testid="stSidebar"] .stAlert [data-testid="stMarkdownContainer"] {
+        color: white !important;
     }
 
-    /* 优化分隔线 */
+    /* Success 状态 */
+    section[data-testid="stSidebar"] .stSuccess {
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.3) 0%, rgba(40, 167, 69, 0.1) 100%) !important;
+        border-color: rgba(40, 167, 69, 0.5) !important;
+    }
+
+    /* Warning 状态 */
+    section[data-testid="stSidebar"] .stWarning {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.3) 0%, rgba(255, 193, 7, 0.1) 100%) !important;
+        border-color: rgba(255, 193, 7, 0.5) !important;
+    }
+
+    /* Error 状态 */
+    section[data-testid="stSidebar"] .stError {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.3) 0%, rgba(220, 53, 69, 0.1) 100%) !important;
+        border-color: rgba(220, 53, 69, 0.5) !important;
+    }
+
+    /* 分隔线样式 */
     section[data-testid="stSidebar"] hr {
-        margin: 0.75rem 0 !important;
+        border: none !important;
+        height: 2px !important;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%) !important;
+        margin: 1.5rem 0 !important;
     }
 
-    /* 确保下拉框选项完全可见 - 调整为适合320px */
-    .stSelectbox [data-baseweb="select"] {
-        min-width: 260px !important;
-        max-width: 280px !important;
+    /* Markdown 文本样式 */
+    section[data-testid="stSidebar"] .stMarkdown {
+        color: rgba(255, 255, 255, 0.9) !important;
     }
 
-    /* 优化下拉框选项列表 */
-    .stSelectbox [role="listbox"] {
-        min-width: 260px !important;
-        max-width: 290px !important;
+    section[data-testid="stSidebar"] .stMarkdown p {
+        font-size: 0.85rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 0.5rem !important;
     }
 
-    /* 额外的边距控制 - 确保左右边距减小 */
-    .sidebar .element-container {
-        padding: 0 !important;
-        margin: 0.2rem 0 !important;
+    section[data-testid="stSidebar"] .stMarkdown strong {
+        color: white !important;
+        font-weight: 700 !important;
     }
 
-    /* 强制覆盖默认样式 */
-    .css-1d391kg .element-container {
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
+    /* 滚动条样式 */
+    section[data-testid="stSidebar"] ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    section[data-testid="stSidebar"] ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+
+    section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+    }
+
+    section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* 动画效果 */
+    section[data-testid="stSidebar"] .stSelectbox,
+    section[data-testid="stSidebar"] .stTextInput,
+    section[data-testid="stSidebar"] .stButton {
+        animation: slideInLeft 0.6s ease-out;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1146,5 +1247,15 @@ def render_sidebar():
         config['custom_openai_base_url'] = st.session_state.get('custom_openai_base_url', 'https://api.openai.com/v1')
         config['custom_openai_api_key'] = st.session_state.get('custom_openai_api_key', '')
         logger.debug(f"🔧 [自定义OpenAI] 配置已添加 - 端点: {config['custom_openai_base_url']}")
+    
+    # 添加自动保存设置
+    st.markdown("---")
+    
+    # 导入自动保存设置渲染器
+    try:
+        from utils.auto_saver import render_auto_save_settings
+        render_auto_save_settings()
+    except ImportError:
+        logger.warning("⚠️ 自动保存模块不可用")
     
     return config

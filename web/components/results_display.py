@@ -22,10 +22,147 @@ def render_results(results):
         st.warning("暂无分析结果")
         return
 
-    # 添加CSS确保结果内容不被右侧遮挡
+    # 添加现代化的结果显示样式
     st.markdown("""
     <style>
-    /* 确保分析结果内容有足够的右边距 */
+    /* 分析结果整体样式 */
+    .results-container {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 1rem 0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 结果标题样式 */
+    .results-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .results-header h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .results-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    /* Metric卡片样式美化 */
+    .stMetric {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 15px;
+        padding: 1.5rem 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+        margin: 0.5rem 0;
+    }
+
+    .stMetric:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    /* Metric标签样式 */
+    .stMetric > div > div:first-child {
+        font-weight: 700 !important;
+        color: #495057 !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Metric值样式 */
+    .stMetric > div > div:nth-child(2) {
+        font-weight: 800 !important;
+        font-size: 1.8rem !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* 展开器样式美化 */
+    .stExpander {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 15px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        margin: 1rem 0;
+        overflow: hidden;
+    }
+
+    .stExpander:hover {
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+
+    /* 展开器标题样式 */
+    .stExpander .streamlit-expanderHeader {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 700;
+        padding: 1rem 1.5rem;
+        border-radius: 15px 15px 0 0;
+        margin: 0;
+    }
+
+    .stExpander .streamlit-expanderHeader:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    }
+
+    /* 展开器内容样式 */
+    .stExpander .streamlit-expanderContent {
+        padding: 1.5rem;
+        background: white;
+        border-radius: 0 0 15px 15px;
+    }
+
+    /* 成功/警告/错误消息样式美化 */
+    .stSuccess {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 1px solid #28a745;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    }
+
+    .stWarning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+
+    .stError {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 1px solid #dc3545;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+    }
+
+    /* 确保分析结果内容不被右侧遮挡 */
     .element-container, .stMarkdown, .stExpander {
         margin-right: 1.5rem !important;
         padding-right: 0.5rem !important;
@@ -41,6 +178,32 @@ def render_results(results):
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
     }
+
+    /* 分隔线美化 */
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+        margin: 2rem 0;
+        opacity: 0.3;
+    }
+
+    /* 动画效果 */
+    .results-container {
+        animation: resultsSlideIn 0.8s ease-out;
+    }
+
+    @keyframes resultsSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -50,13 +213,22 @@ def render_results(results):
     success = results.get('success', False)
     error = results.get('error')
 
-    st.markdown("---")
-    st.header(f"📊 {stock_symbol} 分析结果")
+    # 添加结果容器包装
+    st.markdown('<div class="results-container">', unsafe_allow_html=True)
+    
+    # 美化的结果标题
+    st.markdown(f'''
+    <div class="results-header">
+        <h1>📊 {stock_symbol} 分析结果</h1>
+        <p class="results-subtitle">AI多智能体团队深度分析报告</p>
+    </div>
+    ''', unsafe_allow_html=True)
 
     # 如果分析失败，显示错误信息
     if not success and error:
         st.error(f"❌ **分析失败**: {error}")
         st.info("💡 **解决方案**: 请检查API密钥配置，确保网络连接正常，然后重新运行分析。")
+        st.markdown('</div>', unsafe_allow_html=True)  # 关闭容器
         return
 
     # 投资决策摘要
@@ -73,6 +245,9 @@ def render_results(results):
     
     # 导出报告功能
     render_export_buttons(results)
+    
+    # 关闭结果容器
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def render_analysis_info(results):
     """渲染分析配置信息"""
@@ -139,37 +314,136 @@ def render_analysis_info(results):
 def render_decision_summary(decision, stock_symbol=None):
     """渲染投资决策摘要"""
 
-    st.subheader("🎯 投资决策摘要")
+    st.markdown("""
+    <div style="
+        text-align: center;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin: 2rem 0;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    ">
+        <h3 style="
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        ">🎯 投资决策摘要</h3>
+        <p style="
+            color: #6c757d;
+            margin: 0;
+            font-size: 1rem;
+        ">基于AI多智能体团队深度分析的投资建议</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # 如果没有决策数据，显示占位符
+    # 如果没有决策数据，显示现代化占位符
     if not decision:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    padding: 30px; border-radius: 15px; text-align: center;
-                    border: 2px dashed #dee2e6; margin: 20px 0;">
-            <h4 style="color: #6c757d; margin-bottom: 15px;">📊 等待投资决策</h4>
-            <p style="color: #6c757d; font-size: 16px; margin-bottom: 20px;">
-                分析完成后，投资决策将在此处显示
-            </p>
-            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                <span style="background: white; padding: 8px 16px; border-radius: 20px;
-                           color: #6c757d; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    📊 投资建议
-                </span>
-                <span style="background: white; padding: 8px 16px; border-radius: 20px;
-                           color: #6c757d; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    💰 目标价位
-                </span>
-                <span style="background: white; padding: 8px 16px; border-radius: 20px;
-                           color: #6c757d; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    ⚖️ 风险评级
-                </span>
-                <span style="background: white; padding: 8px 16px; border-radius: 20px;
-                           color: #6c757d; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    🎯 置信度
-                </span>
+        <div style="
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            margin: 2rem 0;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        ">
+            <div style="margin-bottom: 2rem;">
+                <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 50%;
+                    margin: 0 auto 1rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 2rem;
+                    color: white;
+                    animation: pulse 2s ease-in-out infinite;
+                ">📊</div>
+                <h3 style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    color: transparent;
+                    font-weight: 700;
+                    font-size: 1.5rem;
+                    margin-bottom: 1rem;
+                ">等待投资决策生成</h3>
+                <p style="
+                    color: #6c757d;
+                    font-size: 1.1rem;
+                    margin-bottom: 2rem;
+                    line-height: 1.6;
+                ">AI多智能体团队正在深度分析市场数据<br>分析完成后，详细的投资决策将在此处显示</p>
+            </div>
+            
+            <div style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+                margin-top: 2rem;
+            ">
+                <div style="
+                    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+                    padding: 1.5rem 1rem;
+                    border-radius: 15px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                    border: 1px solid rgba(102, 126, 234, 0.1);
+                ">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📊</div>
+                    <div style="font-weight: 600; color: #495057;">投资建议</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">买入/持有/卖出</div>
+                </div>
+                
+                <div style="
+                    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+                    padding: 1.5rem 1rem;
+                    border-radius: 15px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                    border: 1px solid rgba(102, 126, 234, 0.1);
+                ">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💰</div>
+                    <div style="font-weight: 600; color: #495057;">目标价位</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">预期价格区间</div>
+                </div>
+                
+                <div style="
+                    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+                    padding: 1.5rem 1rem;
+                    border-radius: 15px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                    border: 1px solid rgba(102, 126, 234, 0.1);
+                ">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚖️</div>
+                    <div style="font-weight: 600; color: #495057;">风险评级</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">风险水平评估</div>
+                </div>
+                
+                <div style="
+                    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+                    padding: 1.5rem 1rem;
+                    border-radius: 15px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                    border: 1px solid rgba(102, 126, 234, 0.1);
+                ">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🎯</div>
+                    <div style="font-weight: 600; color: #495057;">置信度</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">分析可信度</div>
+                </div>
             </div>
         </div>
+        
+        <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        </style>
         """, unsafe_allow_html=True)
         return
 

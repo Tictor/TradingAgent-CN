@@ -12,8 +12,148 @@ logger = get_logger('web')
 
 def render_analysis_form():
     """渲染股票分析表单"""
+    
+    # 添加表单样式
+    st.markdown("""
+    <style>
+    /* 分析表单样式优化 */
+    .stForm {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        margin: 1rem 0;
+    }
 
-    st.subheader("📋 分析配置")
+    /* 表单标题样式 */
+    .stForm h3 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-size: 1.3rem;
+    }
+
+    /* 表单控件优化 */
+    .stForm .stSelectbox > div > div {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .stForm .stSelectbox > div > div:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .stForm .stTextInput > div > div {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .stForm .stTextInput > div > div:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .stForm .stDateInput > div > div {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .stForm .stDateInput > div > div:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .stForm .stSlider {
+        margin: 1rem 0;
+    }
+
+    .stForm .stMultiSelect > div > div {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .stForm .stMultiSelect > div > div:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+
+    /* 表单提交按钮样式 */
+    .stForm .stFormSubmitButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        padding: 1rem 3rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .stForm .stFormSubmitButton > button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    }
+
+    /* 标签样式优化 */
+    .stForm label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* 帮助文本样式 */
+    .stForm .stSelectbox [data-testid="stTooltipHoverTarget"],
+    .stForm .stTextInput [data-testid="stTooltipHoverTarget"],
+    .stForm .stDateInput [data-testid="stTooltipHoverTarget"] {
+        color: #6c757d;
+    }
+
+    /* 列布局优化 */
+    .stForm .element-container {
+        margin-bottom: 1rem;
+    }
+
+    /* 动画效果 */
+    .stForm {
+        animation: formFadeIn 0.6s ease-out;
+    }
+
+    @keyframes formFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
+    st.markdown("### 📋 分析配置", unsafe_allow_html=True)
 
     # 获取缓存的表单配置（确保不为None）
     cached_config = st.session_state.get('form_config') or {}
@@ -298,11 +438,14 @@ def render_analysis_form():
         logger.debug(f"🔍 [FORM DEBUG] 返回的表单数据: {form_data}")
         logger.debug(f"🔍 [FORM DEBUG] ===== 表单提交结束 =====")
 
+        st.markdown('</div>', unsafe_allow_html=True)
         return form_data
     elif submitted and not stock_symbol:
         # 用户点击了提交但没有输入股票代码
         logger.error(f"🔍 [FORM DEBUG] 提交失败：股票代码为空")
         st.error("❌ 请输入股票代码后再提交")
+        st.markdown('</div>', unsafe_allow_html=True)
         return {'submitted': False}
     else:
+        st.markdown('</div>', unsafe_allow_html=True)
         return {'submitted': False}
