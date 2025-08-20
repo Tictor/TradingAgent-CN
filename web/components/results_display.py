@@ -443,13 +443,21 @@ def render_detailed_analysis(state):
         return
     
     # ——— 统一的响应式布局（带横向滚动） ———
-    # 模块概览（可横向滚动，避免漏看）
-    overview_html = "<div style='overflow-x:auto; white-space: nowrap; padding: 6px 8px; border:1px dashed #e6e9ef; border-radius: 10px; background:#fafbfe; margin-bottom: 10px;'>"
+    # 模块概览（改为自动换行，避免出现横向滚动条）
+    overview_html = "<div style='display:flex; flex-wrap: wrap; row-gap:8px; column-gap:6px; align-items:center; padding: 6px 8px; border:1px dashed #e6e9ef; border-radius: 10px; background:#fafbfe; margin-bottom: 10px;'>"
     for m in available_modules:
-        overview_html += f"<span style='display:inline-flex; align-items:center; gap:6px; padding:6px 10px; margin:4px 6px 4px 0; background:white; border:1px solid #e1e5e9; border-radius:999px; font-size:13px; color:#495057; box-shadow:0 1px 2px rgba(0,0,0,0.05);'>{m['icon']} {m['title']}</span>"
+        icon = m.get('icon', '')
+        title = m.get('title', '')
+        title_stripped = title.strip()
+        # 如果标题已以同样的 icon 开头，则不重复渲染 icon，避免例如“⚠️ ⚠️”
+        if icon and title_stripped.startswith(icon):
+            label = title_stripped
+        else:
+            label = f"{icon} {title_stripped}".strip()
+        overview_html += f"<span style='display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:white; border:1px solid #e1e5e9; border-radius:999px; font-size:13px; color:#495057; box-shadow:0 1px 2px rgba(0,0,0,0.05);'>{label}</span>"
     overview_html += "</div>"
     st.markdown(overview_html, unsafe_allow_html=True)
-    st.caption("提示：模块较多或屏幕较窄时，可横向滚动上方标签栏或概览区查看全部模块。上方“模块概览”为只读展示，非选择器。")
+    st.caption("模块概览：自动换行显示。上方“模块概览”为只读展示，非选择器。")
 
     # 布局选择（自适应/标签页/下拉）
     with st.expander("显示设置", expanded=False):
@@ -508,7 +516,11 @@ def render_detailed_analysis(state):
             key="analysis_module_selector_unified",
         )
         selected_module = next(m for m in available_modules if m['key'] == selected_key)
-        st.markdown(f"## {selected_module['icon']} {selected_module['title']}")
+        # 标题去重表情，避免“⚠️ ⚠️”
+        _icon = selected_module.get('icon', '')
+        _title = selected_module.get('title', '').strip()
+        _header_label = _title if (_icon and _title.startswith(_icon)) else f"{_icon} {_title}".strip()
+        st.markdown(f"## {_header_label}")
         st.markdown(f"*{selected_module['description']}*")
         st.markdown("---")
         render_module_content(selected_module['key'], selected_module)
@@ -520,7 +532,11 @@ def render_detailed_analysis(state):
         tabs = st.tabs([m['title'] for m in available_modules])
         for tab, module in zip(tabs, available_modules):
             with tab:
-                st.markdown(f"## {module['icon']} {module['title']}")
+                # 标题去重表情，避免“⚠️ ⚠️”
+                _icon = module.get('icon', '')
+                _title = module.get('title', '').strip()
+                _header_label = _title if (_icon and _title.startswith(_icon)) else f"{_icon} {_title}".strip()
+                st.markdown(f"## {_header_label}")
                 st.markdown(f"*{module['description']}*")
                 st.markdown("---")
                 render_module_content(module['key'], module)
