@@ -712,7 +712,8 @@ def format_analysis_results(results):
             if risk_assessment:
                 formatted_state[key] = risk_assessment
     
-    return {
+    # 构建格式化结果
+    formatted_results = {
         'stock_symbol': results['stock_symbol'],
         'decision': formatted_decision,
         'state': formatted_state,
@@ -731,6 +732,34 @@ def format_analysis_results(results):
             'llm_model': results['llm_model']
         }
     }
+    
+    # 自动生成并保存HTML报告
+    try:
+        from .report_exporter import save_report_to_results_dir
+        from .html_report_generator import html_report_generator
+        from datetime import datetime
+        
+        # 生成HTML报告
+        html_content = html_report_generator.generate_html_report(formatted_results)
+        
+        # 生成文件名
+        stock_symbol = results['stock_symbol']
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{stock_symbol}_analysis_{timestamp}.html"
+        
+        # 保存到results目录
+        html_bytes = html_content.encode('utf-8')
+        saved_path = save_report_to_results_dir(html_bytes, filename, stock_symbol)
+        
+        if saved_path:
+            logger.info(f"✅ 自动生成HTML报告已保存: {saved_path}")
+        
+    except Exception as e:
+        logger.error(f"⚠️ 自动生成HTML报告失败: {e}")
+        # 不影响主流程，继续返回结果
+        pass
+    
+    return formatted_results
 
 def validate_analysis_params(stock_symbol, analysis_date, analysts, research_depth, market_type="美股"):
     """验证分析参数"""

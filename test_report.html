@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAPL 股票分析报告 - TradingAgents-CN</title>
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #262730;
+            background-color: #fafafa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 主标题样式 */
+        .main-header {
+            background: linear-gradient(90deg, #1f77b4, #ff7f0e);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            color: white;
+            text-align: center;
+        }
+
+        .main-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .main-header h2 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+        }
+
+        .timestamp {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* 错误信息样式 */
+        .error-section {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .error-section h3 {
+            color: #721c24;
+            margin-bottom: 1rem;
+        }
+
+        .error-section p {
+            color: #721c24;
+        }
+
+        /* 决策摘要样式 */
+        .decision-summary {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+
+        .decision-summary h3 {
+            color: #1f77b4;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #1f77b4;
+            padding-bottom: 0.5rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #1f77b4;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #262730;
+        }
+
+        .metric-value.buy {
+            color: #28a745;
+        }
+
+        .metric-value.sell {
+            color: #dc3545;
+        }
+
+        .metric-value.hold {
+            color: #ffc107;
+        }
+
+        /* 推理内容样式 */
+        .reasoning-section {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .reasoning-section h4 {
+            color: #1976d2;
+            margin-bottom: 1rem;
+        }
+
+        /* 分析配置信息样式 */
+        .analysis-info {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+
+        .analysis-info h3 {
+            color: #1f77b4;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .config-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .config-item .label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .config-item .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #262730;
+        }
+
+        .analysts-list {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #e8f5e8;
+            border-radius: 8px;
+        }
+
+        .analysts-list strong {
+            color: #2e7d32;
+        }
+
+        /* 详细分析报告样式 */
+        .detailed-analysis {
+            margin: 3rem 0;
+        }
+
+        .detailed-analysis h3 {
+            color: #1f77b4;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #1f77b4;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Tab样式 */
+        .tabs-container {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .tabs-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-button {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .tab-button:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-1px);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content h4 {
+            color: #1f77b4;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .tab-content p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        /* 占位符样式 */
+        .analysis-placeholder {
+            text-align: center;
+            padding: 3rem;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .analysis-placeholder h4 {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .analysis-placeholder p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .placeholder-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .placeholder-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .placeholder-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .placeholder-card .title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 0.3rem;
+        }
+
+        .placeholder-card .desc {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .placeholder-tip {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .placeholder-tip p {
+            color: #1976d2;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* 风险提示样式 */
+        .risk-warning {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border: 2px solid #f44336;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .risk-warning h3 {
+            color: #c62828;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .warning-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .warning-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .warning-content li {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .warning-content li:before {
+            content: "⚠️";
+            position: absolute;
+            left: 0;
+        }
+
+        .report-footer {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .main-header {
+                padding: 1.5rem;
+            }
+            
+            .main-header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+            
+            .tabs-nav {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                text-align: center;
+            }
+        }
+
+        /* 团队决策特殊样式 */
+        .team-decision {
+            margin: 2rem 0;
+        }
+
+        .team-decision h5 {
+            color: #1976d2;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #1976d2;
+        }
+
+        .team-decision .content {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #1976d2;
+        }
+
+        /* 滚动优化 */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* 打印样式 */
+        @media print {
+            .container {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .main-header {
+                background: #1f77b4 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .tab-content {
+                display: block !important;
+            }
+            
+            .tabs-nav {
+                display: none;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <h1>🤖 TradingAgents-CN</h1>
+            <h2>AAPL 股票分析报告</h2>
+            <p class="timestamp">生成时间: 2025-08-20 18:33:51</p>
+        </header>
+
+        
+        
+        <main>
+            
+        <section class="decision-summary">
+            <h3>🎯 投资决策摘要</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">投资建议</div>
+                    <div class="metric-value buy">买入</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">置信度</div>
+                    <div class="metric-value">80.0%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">风险评分</div>
+                    <div class="metric-value">30.0%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">目标价位</div>
+                    <div class="metric-value">$150.00</div>
+                </div>
+            </div>
+            
+            <div class="reasoning-section">
+                <h4>🧠 AI分析推理</h4>
+                <div class="reasoning-content">基于技术分析和基本面分析，苹果公司显示出强劲的增长潜力。</div>
+            </div>
+            
+        </section>
+        
+            
+            
+        <section class="analysis-info">
+            <h3>📋 分析配置信息</h3>
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="label">LLM提供商</div>
+                    <div class="value">阿里百炼</div>
+                </div>
+                <div class="config-item">
+                    <div class="label">AI模型</div>
+                    <div class="value">Qwen Plus</div>
+                </div>
+                <div class="config-item">
+                    <div class="label">分析师数量</div>
+                    <div class="value">4个</div>
+                </div>
+            </div>
+            
+            <div class="analysts-list">
+                <strong>参与的分析师:</strong><br>
+                📈 市场技术分析师 • 💰 基本面分析师 • 📰 新闻分析师 • 💭 社交媒体分析师
+            </div>
+            
+        </section>
+        
+            
+            
+        <section class="detailed-analysis">
+            <h3>📋 详细分析报告</h3>
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-button active" onclick="showTab('tab_market_report')">📈 市场技术分析</button><button class="tab-button " onclick="showTab('tab_fundamentals_report')">💰 基本面分析</button><button class="tab-button " onclick="showTab('tab_sentiment_report')">💭 市场情绪分析</button><button class="tab-button " onclick="showTab('tab_news_report')">📰 新闻事件分析</button>
+                </div>
+                
+            <div id="tab_market_report" class="tab-content active">
+                <h4>📈 市场技术分析</h4>
+                <p><em>技术指标、价格趋势、支撑阻力位分析</em></p>
+                <hr style="margin: 1rem 0; border: none; border-top: 1px solid #dee2e6;">
+                <p>技术分析显示股价处于上升趋势，RSI指标为65，接近超买但仍有上升空间。</p>
+            </div>
+            
+            <div id="tab_fundamentals_report" class="tab-content ">
+                <h4>💰 基本面分析</h4>
+                <p><em>财务数据、估值水平、盈利能力分析</em></p>
+                <hr style="margin: 1rem 0; border: none; border-top: 1px solid #dee2e6;">
+                <p>公司财务状况良好，营收和净利润均实现双位数增长。</p>
+            </div>
+            
+            <div id="tab_sentiment_report" class="tab-content ">
+                <h4>💭 市场情绪分析</h4>
+                <p><em>投资者情绪、社交媒体情绪指标</em></p>
+                <hr style="margin: 1rem 0; border: none; border-top: 1px solid #dee2e6;">
+                <p>社交媒体情绪积极，投资者信心较强。</p>
+            </div>
+            
+            <div id="tab_news_report" class="tab-content ">
+                <h4>📰 新闻事件分析</h4>
+                <p><em>相关新闻事件、市场动态影响分析</em></p>
+                <hr style="margin: 1rem 0; border: none; border-top: 1px solid #dee2e6;">
+                <p>近期发布的新产品获得市场积极反响，分析师普遍看好。</p>
+            </div>
+            
+            </div>
+        </section>
+        
+        </main>
+
+        <footer class="risk-warning">
+            <h3>⚠️ 重要风险提示</h3>
+            <div class="warning-content">
+                <p><strong>投资风险提示</strong>:</p>
+                <ul>
+                    <li><strong>仅供参考</strong>: 本分析结果仅供参考，不构成投资建议</li>
+                    <li><strong>投资风险</strong>: 股票投资有风险，可能导致本金损失</li>
+                    <li><strong>理性决策</strong>: 请结合多方信息进行理性投资决策</li>
+                    <li><strong>专业咨询</strong>: 重大投资决策建议咨询专业财务顾问</li>
+                    <li><strong>自担风险</strong>: 投资决策及其后果由投资者自行承担</li>
+                </ul>
+            </div>
+            <p class="report-footer">报告生成时间: 2025-08-20 18:33:51</p>
+        </footer>
+    </div>
+
+    <script>
+        
+        function showTab(tabId) {
+            // 隐藏所有标签内容
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有标签按钮的active类
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            const selectedTab = document.getElementById(tabId);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // 激活对应的标签按钮
+            const clickedButton = event.target;
+            clickedButton.classList.add('active');
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('TradingAgents-CN HTML Report Loaded');
+            
+            // 确保第一个标签是激活状态
+            const firstTab = document.querySelector('.tab-content');
+            const firstButton = document.querySelector('.tab-button');
+            if (firstTab) firstTab.classList.add('active');
+            if (firstButton) firstButton.classList.add('active');
+        });
+        
+    </script>
+</body>
+</html>

@@ -49,6 +49,9 @@ try:
     import os
     from pathlib import Path
 
+    # 导入HTML报告生成器
+    from .html_report_generator import html_report_generator
+
     # 导入pypandoc（用于markdown转docx和pdf）
     import pypandoc
 
@@ -556,6 +559,12 @@ class ReportExporter:
                 logger.info(f"✅ Markdown报告生成成功，长度: {len(content)} 字符")
                 return content.encode('utf-8')
 
+            elif format_type == 'html':
+                logger.info("🌐 生成HTML报告...")
+                content = html_report_generator.generate_html_report(results)
+                logger.info(f"✅ HTML报告生成成功，长度: {len(content)} 字符")
+                return content.encode('utf-8')
+
             elif format_type == 'docx':
                 logger.info("📄 生成Word文档...")
                 if not self.pandoc_available:
@@ -838,7 +847,7 @@ def render_export_buttons(results: Dict[str, Any]):
     stock_symbol = results.get('stock_symbol', 'analysis')
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         if st.button("📄 导出 Markdown", help="导出为Markdown格式"):
@@ -881,9 +890,45 @@ def render_export_buttons(results: Dict[str, Any]):
                 logger.error("❌ Markdown导出失败，content为空")
     
     with col2:
+        if st.button("🌐 导出 HTML", help="导出为HTML网页格式"):
+            logger.info(f"🖱️ [EXPORT] 用户点击HTML导出按钮 - 股票: {stock_symbol}")
+            # 1. 保存分模块报告（CLI格式）
+            logger.info("📁 开始保存分模块报告（CLI格式）...")
+            modular_files = save_modular_reports_to_results_dir(results, stock_symbol)
+
+            # 2. 生成HTML汇总报告
+            content = report_exporter.export_report(results, 'html')
+            if content:
+                filename = f"{stock_symbol}_analysis_{timestamp}.html"
+                logger.info(f"✅ [EXPORT] HTML导出成功，文件名: {filename}")
+
+                # 3. 保存HTML汇总报告到results目录
+                saved_path = save_report_to_results_dir(content, filename, stock_symbol)
+
+                # 4. 显示保存结果
+                if modular_files and saved_path:
+                    st.success(f"✅ 已保存 {len(modular_files)} 个分模块报告 + 1个HTML汇总报告")
+                    with st.expander("📁 查看保存的文件"):
+                        st.write("**分模块报告:**")
+                        for module, path in modular_files.items():
+                            st.write(f"- {module}: `{path}`")
+                        st.write("**HTML汇总报告:**")
+                        st.write(f"- HTML报告: `{saved_path}`")
+                elif saved_path:
+                    st.success(f"✅ HTML报告已保存到: {saved_path}")
+
+                st.download_button(
+                    label="📥 下载 HTML",
+                    data=content,
+                    file_name=filename,
+                    mime="text/html"
+                )
+            else:
+                logger.error(f"❌ [EXPORT] HTML导出失败，content为空")
+    
+    with col3:
         if st.button("📝 导出 Word", help="导出为Word文档格式"):
             logger.info(f"🖱️ [EXPORT] 用户点击Word导出按钮 - 股票: {stock_symbol}")
-            logger.info(f"🖱️ 用户点击Word导出按钮 - 股票: {stock_symbol}")
             with st.spinner("正在生成Word文档，请稍候..."):
                 try:
                     logger.info(f"🔄 [EXPORT] 开始Word导出流程...")
@@ -954,10 +999,10 @@ def render_export_buttons(results: Dict[str, Any]):
                         sudo apt-get install pandoc
                         ```
 
-                        3. **替代方案**: 使用Markdown格式导出
+                        3. **替代方案**: 使用Markdown或HTML格式导出
                         """)
     
-    with col3:
+    with col4:
         if st.button("📊 导出 PDF", help="导出为PDF格式 (需要额外工具)"):
             logger.info(f"🖱️ 用户点击PDF导出按钮 - 股票: {stock_symbol}")
             with st.spinner("正在生成PDF，请稍候..."):
@@ -1039,10 +1084,11 @@ def render_export_buttons(results: Dict[str, Any]):
 
                         **方案3: 使用替代格式**
                         - 📄 Markdown格式 - 轻量级，兼容性好
+                        - 🌐 HTML格式 - 可在浏览器中查看，样式丰富
                         - 📝 Word格式 - 适合进一步编辑
                         """)
 
                     # 建议使用其他格式
-                    st.info("💡 建议：您可以先使用Markdown或Word格式导出，然后使用其他工具转换为PDF")
+                    st.info("💡 建议：您可以先使用Markdown、HTML或Word格式导出，然后使用其他工具转换为PDF")
     
  
