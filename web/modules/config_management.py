@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """
-配置管理页面
+配置管理页面 - 增强版
+支持环境变量重载、实时状态显示和配置验证
 """
 
 import streamlit as st
 import pandas as pd
+import os
 from datetime import datetime, timedelta
 import plotly.express as px
 import plotly.graph_objects as go
-from typing import List
+from typing import List, Dict, Any
+import time
+import json
 
 # 添加项目根目录到路径
 import sys
@@ -19,37 +23,350 @@ sys.path.insert(0, str(project_root))
 # 导入UI工具函数
 sys.path.append(str(Path(__file__).parent.parent))
 from utils.ui_utils import apply_hide_deploy_button_css
+from utils.config_reloader import config_reloader
 
 from tradingagents.config.config_manager import (
     config_manager, ModelConfig, PricingConfig
 )
 
+# 导入日志模块
+from tradingagents.utils.logging_manager import get_logger
+logger = get_logger('web')
+
 
 def render_config_management():
-    """渲染配置管理页面"""
+    """渲染配置管理页面 - 增强版"""
     # 应用隐藏Deploy按钮的CSS样式
     apply_hide_deploy_button_css()
     
     st.title("⚙️ 配置管理")
-
-    # 显示.env配置状态
-    render_env_status()
+    
+    # 添加配置重载控制面板
+    render_config_reload_panel()
 
     # 侧边栏选择功能
     st.sidebar.title("配置选项")
     page = st.sidebar.selectbox(
         "选择功能",
-        ["模型配置", "定价设置", "使用统计", "系统设置"]
+        ["环境配置状态", "API密钥管理", "数据库配置", "系统设置", "模型配置", "定价设置", "使用统计"]
     )
     
-    if page == "模型配置":
+    if page == "环境配置状态":
+        render_environment_status()
+    elif page == "API密钥管理":
+        render_api_keys_management()
+    elif page == "数据库配置":
+        render_database_config()
+    elif page == "系统设置":
+        render_system_settings()
+    elif page == "模型配置":
         render_model_config()
     elif page == "定价设置":
         render_pricing_config()
     elif page == "使用统计":
         render_usage_statistics()
-    elif page == "系统设置":
-        render_system_settings()
+
+def render_config_reload_panel():
+    """渲染配置重载控制面板"""
+    st.markdown("### 🔄 配置管理控制台")
+    
+    col1, col2, col3, col4 = st.columns([2, 2, 2, 3])
+    
+    with col1:
+        if st.button("🔄 重新加载配置", type="primary", help="重新加载.env文件中的环境变量"):
+            with st.spinner("正在重新加载配置..."):
+                success, message, stats = config_reloader.reload_environment_variables()
+                
+                if success:
+                    st.success(message)
+                    
+                    if stats.get("total_changes", 0) > 0:
+                        st.info(f"📊 配置变更统计：新增 {stats.get('new_keys', 0)} 个，更新 {stats.get('updated_keys', 0)} 个，移除 {stats.get('removed_keys', 0)} 个")
+                        
+                        # 显示变更详情
+                        if st.expander("📋 查看详细变更"):
+                            for key, change in stats.get("changes", {}).items():
+                                if change["type"] == "new":
+                                    st.success(f"➕ {key}: 新增配置")
+                                elif change["type"] == "updated":  
+                                    st.info(f"🔄 {key}: 配置已更新")
+                                elif change["type"] == "removed":
+                                    st.warning(f"➖ {key}: 配置已移除")
+                    
+                    # 自动刷新页面以反映最新状态
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error(message)
+    
+    with col2:
+        if st.button("📊 获取配置状态", help="查看当前环境变量配置状态"):
+            st.session_state['show_config_status'] = True
+            st.rerun()
+    
+    with col3:
+        if st.button("✅ 验证所有配置", help="运行配置验证检查"):
+            st.session_state['show_validation_results'] = True
+            st.rerun()
+    
+    with col4:
+        # 显示.env文件状态
+        config_status = config_reloader.get_current_config_status()
+        if config_status.get("env_file_exists", False):
+            file_size = config_status.get("env_file_size", 0)
+            modified_time = datetime.fromtimestamp(config_status.get("env_file_modified", 0))
+            st.success(f"📄 .env文件: {file_size}字节, 修改于 {modified_time.strftime('%H:%M:%S')}")
+        else:
+            st.error("❌ .env文件不存在")
+    
+    st.markdown("---")
+
+def render_environment_status():
+    """渲染环境配置状态页面"""
+    st.markdown("### 🔍 环境配置状态")
+    
+    # 获取当前配置状态
+    status = config_reloader.get_current_config_status()
+    
+    if "error" in status:
+        st.error(f"❌ 获取配置状态失败: {status['error']}")
+        return
+    
+    # 显示综合验证结果
+    validation = status.get("validation_results", {})
+    overall_status = validation.get("overall_status", "unknown")
+    
+    if overall_status == "healthy":
+        st.success("✅ 配置状态良好")
+    elif overall_status == "warning":
+        st.warning("⚠️ 配置存在警告")
+    elif overall_status == "critical":
+        st.error("❌ 配置存在严重问题")
+    else:
+        st.info("❓ 配置状态未知")
+    
+    # 显示关键问题和警告
+    if validation.get("critical_issues"):
+        st.markdown("#### ❌ 严重问题")
+        for issue in validation["critical_issues"]:
+            st.error(issue)
+    
+    if validation.get("warnings"):
+        st.markdown("#### ⚠️ 警告")
+        for warning in validation["warnings"]:
+            st.warning(warning)
+    
+    if validation.get("recommendations"):
+        st.markdown("#### 💡 建议")
+        for rec in validation["recommendations"]:
+            st.info(rec)
+    
+    # 显示配置分类统计
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        api_keys = status.get("api_keys", {})
+        configured_apis = sum(1 for key, info in api_keys.items() if info.get("configured", False))
+        total_apis = len(api_keys)
+        
+        st.metric(
+            "API密钥配置", 
+            f"{configured_apis}/{total_apis}",
+            help="已配置的API密钥数量"
+        )
+    
+    with col2:
+        db_config = status.get("database_config", {})
+        configured_db = sum(1 for key, info in db_config.items() if info.get("configured", False))
+        total_db = len(db_config)
+        
+        st.metric(
+            "数据库配置",
+            f"{configured_db}/{total_db}",
+            help="已配置的数据库设置数量"
+        )
+    
+    with col3:
+        sys_config = status.get("system_config", {})
+        configured_sys = sum(1 for key, info in sys_config.items() if info.get("configured", False))
+        total_sys = len(sys_config)
+        
+        st.metric(
+            "系统配置",
+            f"{configured_sys}/{total_sys}",
+            help="已配置的系统设置数量"
+        )
+
+def render_api_keys_management():
+    """渲染API密钥管理页面"""
+    st.markdown("### 🔑 API密钥管理")
+    
+    # 获取API密钥状态
+    status = config_reloader.get_current_config_status()
+    api_keys = status.get("api_keys", {})
+    
+    if not api_keys:
+        st.warning("⚠️ 无法获取API密钥状态")
+        return
+    
+    # 创建API密钥状态表格
+    api_data = []
+    for key, info in api_keys.items():
+        validation = info.get("validation", {})
+        api_data.append({
+            "API密钥": key,
+            "状态": "✅ 已配置" if info.get("configured", False) else "❌ 未配置",
+            "掩码值": info.get("masked_value", ""),
+            "验证结果": validation.get("message", "未知"),
+            "验证状态": {
+                "success": "✅ 正常",
+                "warning": "⚠️ 警告", 
+                "error": "❌ 错误",
+                "info": "ℹ️ 信息"
+            }.get(validation.get("level", "info"), "❓ 未知")
+        })
+    
+    df = pd.DataFrame(api_data)
+    
+    # 显示表格
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True
+    )
+    
+    # 分类显示
+    st.markdown("#### 📊 配置详情")
+    
+    # 分组显示API密钥
+    providers = {
+        "核心AI提供商": ["DASHSCOPE_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY", "DEEPSEEK_API_KEY"],
+        "其他AI服务": ["VOLCENGINE_API_KEY", "CUSTOM_OPENAI_API_KEY", "OPENROUTER_API_KEY"],
+        "数据服务": ["FINNHUB_API_KEY", "TUSHARE_TOKEN"]
+    }
+    
+    for category, keys in providers.items():
+        with st.expander(f"{category} ({sum(1 for k in keys if api_keys.get(k, {}).get('configured', False))}/{len(keys)})"):
+            for key in keys:
+                if key in api_keys:
+                    info = api_keys[key]
+                    validation = info.get("validation", {})
+                    
+                    col1, col2, col3 = st.columns([2, 2, 3])
+                    
+                    with col1:
+                        st.write(f"**{key}**")
+                    
+                    with col2:
+                        if info.get("configured", False):
+                            st.success("已配置")
+                        else:
+                            st.error("未配置")
+                    
+                    with col3:
+                        level = validation.get("level", "info")
+                        message = validation.get("message", "无验证信息")
+                        
+                        if level == "success":
+                            st.success(message)
+                        elif level == "warning":
+                            st.warning(message)
+                        elif level == "error":
+                            st.error(message)
+                        else:
+                            st.info(message)
+
+def render_database_config():
+    """渲染数据库配置页面"""
+    st.markdown("### 🗄️ 数据库配置")
+    
+    # 获取数据库配置状态
+    status = config_reloader.get_current_config_status()
+    db_config = status.get("database_config", {})
+    
+    if not db_config:
+        st.warning("⚠️ 无法获取数据库配置状态")
+        return
+    
+    # MongoDB配置
+    with st.expander("📊 MongoDB 配置", expanded=True):
+        mongodb_info = db_config.get("TRADINGAGENTS_MONGODB_URL", {})
+        validation = mongodb_info.get("validation", {})
+        
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            if mongodb_info.get("configured", False):
+                st.success("✅ 已配置")
+            else:
+                st.error("❌ 未配置")
+        
+        with col2:
+            level = validation.get("level", "info")
+            message = validation.get("message", "无验证信息")
+            
+            if level == "success":
+                st.success(message)
+            elif level == "warning":
+                st.warning(message)
+            elif level == "error":
+                st.error(message)
+            else:
+                st.info(message)
+        
+        if mongodb_info.get("configured", False):
+            masked_url = mongodb_info.get("value", "")
+            st.code(masked_url, language="text")
+    
+    # Redis配置
+    with st.expander("🔴 Redis 配置", expanded=True):
+        redis_info = db_config.get("TRADINGAGENTS_REDIS_URL", {})
+        validation = redis_info.get("validation", {})
+        
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            if redis_info.get("configured", False):
+                st.success("✅ 已配置")
+            else:
+                st.error("❌ 未配置")
+        
+        with col2:
+            level = validation.get("level", "info")
+            message = validation.get("message", "无验证信息")
+            
+            if level == "success":
+                st.success(message)
+            elif level == "warning":
+                st.warning(message)
+            elif level == "error":
+                st.error(message)
+            else:
+                st.info(message)
+        
+        if redis_info.get("configured", False):
+            masked_url = redis_info.get("value", "")
+            st.code(masked_url, language="text")
+    
+    # 缓存类型配置
+    with st.expander("💾 缓存配置", expanded=True):
+        cache_info = db_config.get("TRADINGAGENTS_CACHE_TYPE", {})
+        validation = cache_info.get("validation", {})
+        
+        cache_value = cache_info.get("value", "redis")
+        st.info(f"当前缓存类型: **{cache_value}**")
+        
+        level = validation.get("level", "info")
+        message = validation.get("message", "无验证信息")
+        
+        if level == "success":
+            st.success(message)
+        elif level == "warning":
+            st.warning(message)
+        elif level == "error":
+            st.error(message)
+        else:
+            st.info(message)
 
 
 def render_model_config():
