@@ -443,13 +443,8 @@ def render_detailed_analysis(state):
         return
     
     # ——— 统一的响应式布局（带横向滚动） ———
-    # 模块概览（可横向滚动，避免漏看）
-    overview_html = "<div style='overflow-x:auto; white-space: nowrap; padding: 6px 8px; border:1px dashed #e6e9ef; border-radius: 10px; background:#fafbfe; margin-bottom: 10px;'>"
-    for m in available_modules:
-        overview_html += f"<span style='display:inline-flex; align-items:center; gap:6px; padding:6px 10px; margin:4px 6px 4px 0; background:white; border:1px solid #e1e5e9; border-radius:999px; font-size:13px; color:#495057; box-shadow:0 1px 2px rgba(0,0,0,0.05);'>{m['icon']} {m['title']}</span>"
-    overview_html += "</div>"
-    st.markdown(overview_html, unsafe_allow_html=True)
-    st.caption("提示：模块较多或屏幕较窄时，可横向滚动上方标签栏或概览区查看全部模块。")
+    # 概览区已移除
+    st.caption("提示：模块较多或屏幕较窄时，可横向滚动上方标签栏查看全部模块。")
 
     # 布局选择（自适应/标签页/下拉）
     layout_choice = st.radio(
@@ -493,12 +488,7 @@ def render_detailed_analysis(state):
     .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb { background-color: #ff6b6b !important; border-radius: 6px !important; border: 2px solid #ffffff !important; }
     .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar-thumb:hover { background-color: #ff5252 !important; }
     .stTabs [data-baseweb="tab"] { flex-shrink: 0 !important; min-width: fit-content !important; }
-    .stTabs [data-baseweb="tab-list"]::after {
-        content: "← 横向滚动查看更多 →" !important;
-        position: absolute !important; right: 8px !important; top: -18px !important;
-        font-size: 12px !important; color: #ff6b6b !important; background: rgba(255,255,255,0.9) !important;
-        padding: 2px 8px !important; border-radius: 10px !important; border: 1px solid #ff6b6b !important; font-weight: 600 !important;
-    }
+    /* 移除了红色倒梯形提示框样式 */
     </style>
     """
 

@@ -380,7 +380,7 @@ class HTMLReportGenerator:
         }
 
         .analysis-section-title {
-            color: #1565c0;
+            color: #0d47a1;
             font-size: 1.4rem;
             font-weight: 600;
             margin: 1.8rem 0 1rem 0;
@@ -392,7 +392,7 @@ class HTMLReportGenerator:
         }
 
         .analysis-subtitle {
-            color: #1976d2;
+            color: #1565c0;
             font-size: 1.2rem;
             font-weight: 500;
             margin: 1.5rem 0 0.8rem 0;
@@ -411,7 +411,7 @@ class HTMLReportGenerator:
 
         /* 强调文本样式 */
         .tab-content strong {
-            color: #1565c0;
+            color: #2e7d32;
             font-weight: 600;
         }
 
@@ -978,18 +978,18 @@ class HTMLReportGenerator:
         # 按行处理
         lines = text.split('\n')
         html_lines = []
-        in_paragraph = False
         current_paragraph = []
+        i = 0
         
-        for line in lines:
-            line = line.strip()
+        while i < len(lines):
+            line = lines[i].strip()
             
             # 空行处理
             if not line:
                 if current_paragraph:
                     html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
                     current_paragraph = []
-                    in_paragraph = False
+                i += 1
                 continue
             
             # 标题处理
@@ -999,7 +999,7 @@ class HTMLReportGenerator:
                     current_paragraph = []
                 title = line[3:].strip()
                 html_lines.append(f'<h5 class="analysis-subtitle">{title}</h5>')
-                in_paragraph = False
+                i += 1
                 continue
             elif line.startswith('##'):
                 if current_paragraph:
@@ -1007,7 +1007,7 @@ class HTMLReportGenerator:
                     current_paragraph = []
                 title = line[2:].strip()
                 html_lines.append(f'<h4 class="analysis-section-title">{title}</h4>')
-                in_paragraph = False
+                i += 1
                 continue
             elif line.startswith('#'):
                 if current_paragraph:
@@ -1015,7 +1015,7 @@ class HTMLReportGenerator:
                     current_paragraph = []
                 title = line[1:].strip()
                 html_lines.append(f'<h3 class="analysis-main-title">{title}</h3>')
-                in_paragraph = False
+                i += 1
                 continue
                 
             # 列表处理
@@ -1023,16 +1023,45 @@ class HTMLReportGenerator:
                 if current_paragraph:
                     html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
                     current_paragraph = []
-                    in_paragraph = False
                 
                 # 收集连续的列表项
-                list_items = [line[2:].strip()]
+                list_items = []
+                while i < len(lines) and lines[i].strip().startswith('- '):
+                    item_text = lines[i].strip()[2:].strip()
+                    list_items.append(item_text)
+                    i += 1
+                
+                # 生成HTML列表
+                formatted_items = [f'<li>{self._format_text_styles(item)}</li>' for item in list_items]
+                html_lines.append(f'<ul>{"".join(formatted_items)}</ul>')
+                continue
+            
+            # 数字列表处理 (1. 2. 3. 等)
+            if line and line[0].isdigit() and '. ' in line:
+                if current_paragraph:
+                    html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
+                    current_paragraph = []
+                
+                # 收集连续的数字列表项
+                list_items = []
+                while i < len(lines):
+                    current_line = lines[i].strip()
+                    if current_line and current_line[0].isdigit() and '. ' in current_line:
+                        item_text = current_line.split('. ', 1)[1] if '. ' in current_line else current_line
+                        list_items.append(item_text)
+                        i += 1
+                    else:
+                        break
+                
+                # 生成HTML有序列表
+                formatted_items = [f'<li>{self._format_text_styles(item)}</li>' for item in list_items]
+                html_lines.append(f'<ol>{"".join(formatted_items)}</ol>')
                 continue
             
             # 处理强调文本和其他格式
             formatted_line = self._format_text_styles(line)
             current_paragraph.append(formatted_line)
-            in_paragraph = True
+            i += 1
         
         # 处理最后的段落
         if current_paragraph:
