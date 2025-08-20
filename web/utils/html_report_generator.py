@@ -113,7 +113,8 @@ class HTMLReportGenerator:
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
+            font-size: 18px;  /* 增加基础字体大小 */
+            line-height: 1.7;  /* 增加行高提升可读性 */
             color: #262730;
             background-color: #fafafa;
         }
@@ -362,8 +363,82 @@ class HTMLReportGenerator:
         }
 
         .tab-content p {
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
             text-align: justify;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        /* 改进的Markdown样式 */
+        .analysis-main-title {
+            color: #1f77b4;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .analysis-section-title {
+            color: #1565c0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 1.8rem 0 1rem 0;
+            padding-left: 1rem;
+            border-left: 4px solid #2196f3;
+            background-color: #f8fffe;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .analysis-subtitle {
+            color: #1976d2;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin: 1.5rem 0 0.8rem 0;
+            padding-left: 0.5rem;
+            border-left: 3px solid #64b5f6;
+        }
+
+        /* 内容段落样式 */
+        .tab-content p {
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 1.2rem;
+            text-align: justify;
+            color: #333;
+        }
+
+        /* 强调文本样式 */
+        .tab-content strong {
+            color: #1565c0;
+            font-weight: 600;
+        }
+
+        .tab-content em {
+            color: #666;
+            font-style: italic;
+        }
+
+        .tab-content code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d84315;
+        }
+
+        /* 链接样式 */
+        .tab-content a {
+            color: #1976d2;
+            text-decoration: none;
+            border-bottom: 1px solid #bbdefb;
+        }
+
+        .tab-content a:hover {
+            color: #0d47a1;
+            border-bottom: 1px solid #1976d2;
         }
 
         /* 占位符样式 */
@@ -512,23 +587,48 @@ class HTMLReportGenerator:
 
         /* 团队决策特殊样式 */
         .team-decision {
-            margin: 2rem 0;
+            margin: 2.5rem 0;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
         .team-decision h5 {
-            color: #1976d2;
-            margin: 1.5rem 0 1rem 0;
-            font-size: 1.2rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #1976d2;
+            color: white;
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            border-bottom: none;
         }
 
         .team-decision .content {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
+            background: #ffffff;
+            padding: 2rem 1.5rem;
+            margin: 0;
+            border: none;
+            font-size: 17px;
+            line-height: 1.8;
+        }
+
+        .team-decision .content p {
+            color: #333;
+            margin-bottom: 1.2rem;
+        }
+
+        .team-decision .content h3,
+        .team-decision .content h4,
+        .team-decision .content h5 {
+            color: #1565c0;
+            margin-top: 1.5rem;
             margin-bottom: 1rem;
-            border-left: 4px solid #1976d2;
+        }
+
+        .team-decision .content strong {
+            color: #1565c0;
+            font-weight: 600;
         }
 
         /* 滚动优化 */
@@ -849,13 +949,9 @@ class HTMLReportGenerator:
         """格式化模块内容为HTML"""
         
         if isinstance(content, str):
-            # 简单的Markdown到HTML转换
-            html_content = content.replace('\n\n', '</p><p>').replace('\n', '<br>')
-            # 处理标题
-            html_content = html_content.replace('### ', '<h5>').replace('## ', '<h4>').replace('# ', '<h3>')
-            # 处理强调
-            html_content = html_content.replace('**', '</strong>').replace('**', '<strong>')
-            return f'<p>{html_content}</p>'
+            # 改进的Markdown到HTML转换
+            html_content = self._convert_markdown_to_html(content)
+            return html_content
             
         elif isinstance(content, dict):
             # 特殊处理团队决策报告
@@ -874,31 +970,122 @@ class HTMLReportGenerator:
         else:
             return f'<p>{str(content)}</p>'
 
+    def _convert_markdown_to_html(self, text: str) -> str:
+        """将Markdown文本转换为格式化的HTML"""
+        if not text:
+            return '<p>暂无内容</p>'
+            
+        # 按行处理
+        lines = text.split('\n')
+        html_lines = []
+        in_paragraph = False
+        current_paragraph = []
+        
+        for line in lines:
+            line = line.strip()
+            
+            # 空行处理
+            if not line:
+                if current_paragraph:
+                    html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
+                    current_paragraph = []
+                    in_paragraph = False
+                continue
+            
+            # 标题处理
+            if line.startswith('###'):
+                if current_paragraph:
+                    html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
+                    current_paragraph = []
+                title = line[3:].strip()
+                html_lines.append(f'<h5 class="analysis-subtitle">{title}</h5>')
+                in_paragraph = False
+                continue
+            elif line.startswith('##'):
+                if current_paragraph:
+                    html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
+                    current_paragraph = []
+                title = line[2:].strip()
+                html_lines.append(f'<h4 class="analysis-section-title">{title}</h4>')
+                in_paragraph = False
+                continue
+            elif line.startswith('#'):
+                if current_paragraph:
+                    html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
+                    current_paragraph = []
+                title = line[1:].strip()
+                html_lines.append(f'<h3 class="analysis-main-title">{title}</h3>')
+                in_paragraph = False
+                continue
+                
+            # 列表处理
+            if line.startswith('- '):
+                if current_paragraph:
+                    html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
+                    current_paragraph = []
+                    in_paragraph = False
+                
+                # 收集连续的列表项
+                list_items = [line[2:].strip()]
+                continue
+            
+            # 处理强调文本和其他格式
+            formatted_line = self._format_text_styles(line)
+            current_paragraph.append(formatted_line)
+            in_paragraph = True
+        
+        # 处理最后的段落
+        if current_paragraph:
+            html_lines.append(f'<p>{"<br>".join(current_paragraph)}</p>')
+        
+        return '\n'.join(html_lines)
+
+    def _format_text_styles(self, text: str) -> str:
+        """格式化文本样式（粗体、斜体等）"""
+        import re
+        
+        # 处理粗体 **text** 
+        text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+        
+        # 处理斜体 *text*
+        text = re.sub(r'(?<!\*)\*(?!\*)([^*]+?)\*(?!\*)', r'<em>\1</em>', text)
+        
+        # 处理代码 `code`
+        text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+        
+        # 处理链接 [text](url) - 简单版本
+        text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', text)
+        
+        return text
+
     def _format_investment_debate_html(self, content: Dict) -> str:
         """格式化研究团队决策HTML"""
         sections = []
         
         if content.get('bull_history'):
+            formatted_content = self._convert_markdown_to_html(content['bull_history'])
             sections.append(f'''
             <div class="team-decision">
                 <h5>📈 多头研究员分析</h5>
-                <div class="content">{content['bull_history'].replace(chr(10), '<br>')}</div>
+                <div class="content">{formatted_content}</div>
             </div>
             ''')
             
         if content.get('bear_history'):
+            formatted_content = self._convert_markdown_to_html(content['bear_history'])
             sections.append(f'''
             <div class="team-decision">
                 <h5>📉 空头研究员分析</h5>
-                <div class="content">{content['bear_history'].replace(chr(10), '<br>')}</div>
+                <div class="content">{formatted_content}</div>
             </div>
             ''')
             
         if content.get('judge_decision'):
+            formatted_content = self._convert_markdown_to_html(content['judge_decision'])
             sections.append(f'''
             <div class="team-decision">
                 <h5>🎯 研究经理综合决策</h5>
-                <div class="content">{content['judge_decision'].replace(chr(10), '<br>')}</div>
+                <div class="content">{formatted_content}</div>
             </div>
             ''')
             
@@ -909,34 +1096,38 @@ class HTMLReportGenerator:
         sections = []
         
         if content.get('risky_history'):
+            formatted_content = self._convert_markdown_to_html(content['risky_history'])
             sections.append(f'''
             <div class="team-decision">
                 <h5>🚀 激进分析师评估</h5>
-                <div class="content">{content['risky_history'].replace(chr(10), '<br>')}</div>
+                <div class="content">{formatted_content}</div>
             </div>
             ''')
             
         if content.get('safe_history'):
+            formatted_content = self._convert_markdown_to_html(content['safe_history'])
             sections.append(f'''
             <div class="team-decision">
                 <h5>🛡️ 保守分析师评估</h5>
-                <div class="content">{content['safe_history'].replace(chr(10), '<br>')}</div>
+                <div class="content">{formatted_content}</div>
             </div>
             ''')
             
         if content.get('neutral_history'):
+            formatted_content = self._convert_markdown_to_html(content['neutral_history'])
             sections.append(f'''
             <div class="team-decision">
                 <h5>⚖️ 中性分析师评估</h5>
-                <div class="content">{content['neutral_history'].replace(chr(10), '<br>')}</div>
+                <div class="content">{formatted_content}</div>
             </div>
             ''')
             
         if content.get('judge_decision'):
+            formatted_content = self._convert_markdown_to_html(content['judge_decision'])
             sections.append(f'''
             <div class="team-decision">
                 <h5>🎯 投资组合经理最终决策</h5>
-                <div class="content">{content['judge_decision'].replace(chr(10), '<br>')}</div>
+                <div class="content">{formatted_content}</div>
             </div>
             ''')
             
