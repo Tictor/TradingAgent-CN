@@ -892,7 +892,7 @@ class HTMLReportGenerator:
             },
             {
                 'key': 'final_trade_decision',
-                'title': '🎯 最终交易决策',
+                'title': '最终交易决策',
                 'description': '综合所有团队分析后的最终投资决策'
             }
         ]

@@ -319,7 +319,7 @@ class ReportExporter:
 
         # V. 最终交易决策
         if 'final_trade_decision' in state and state['final_trade_decision']:
-            md_content += "\n---\n\n## 🎯 最终交易决策\n\n"
+            md_content += "\n---\n\n## 📋 最终交易决策\n\n"
             md_content += "*综合所有团队分析后的最终投资决策*\n\n"
             md_content += f"{self._clean_text_for_markdown(state['final_trade_decision'])}\n\n"
 
